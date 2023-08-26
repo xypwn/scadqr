@@ -10,9 +10,10 @@ color("black")
 qr("https://github.com/xypwn/scadqr", center=true);
 ```
 ...gives us this model
+
 ![demo QR code for https://github.com/xypwn/scadqr](demo.png)
 
-#### API documentation can be found [here](API.md)
+### API documentation can be found [here](API.md)
 
 ### Usage / Installation
 #### Place the file into your project

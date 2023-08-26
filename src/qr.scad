@@ -109,7 +109,7 @@ function ec_codewords(n, data_cws) =
     );
 
 function do_get_version(msg_len, ec_lvl, ver) =
-    ver > 40 ? undef :
+    ver > len(bit_indices) ? undef : // bit_indices is usually 40 long (max version), but you can remove items if you only need smaller QR codes
     char_capacities[ver-1][ec_lvl][2] >= msg_len ?
         ver :
         do_get_version(msg_len, ec_lvl, ver+1);

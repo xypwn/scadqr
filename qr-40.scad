@@ -8,6 +8,14 @@
 //  ######## //##### //########//###### //####### ##/##   //##
 // ////////   /////   ////////  //////   /////// // //     // 
 //
+// Versions 1-40
+// Error Correction | Max Characters
+// -----------------|---------------
+// Low (~7%)        | 2953
+// Medium (~15%)    | 2331
+// Quartile (~25%)  | 1663
+// High (~30%)      | 1273
+//
 // Effortlessly generate QR codes directly in OpenSCAD
 // https://github.com/xypwn/scadqr
 //
@@ -129,7 +137,7 @@ function _qr_ec_codewords(n, data_cws) =
     );
 
 function _qr_do_get_version(msg_len, ec_lvl, ver) =
-    ver > 40 ? undef :
+    ver > len(_qr_bit_indices) ? undef : // _qr_bit_indices is usually 40 long (max version), but you can remove items if you only need smaller QR codes
     _qr_char_capacities[ver-1][ec_lvl][2] >= msg_len ?
         ver :
         _qr_do_get_version(msg_len, ec_lvl, ver+1);

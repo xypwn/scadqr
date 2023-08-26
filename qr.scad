@@ -1,3 +1,14 @@
+//
+// ███████╗ ██████╗ █████╗ ██████╗  ██████╗ ██████╗ 
+// ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+// ███████╗██║     ███████║██║  ██║██║   ██║██████╔╝
+// ╚════██║██║     ██╔══██║██║  ██║██║▄▄ ██║██╔══██╗
+// ███████║╚██████╗██║  ██║██████╔╝╚██████╔╝██║  ██║
+// ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═════╝  ╚══▀▀═╝ ╚═╝  ╚═╝
+// 
+// Effortlessly generate QR codes directly in OpenSCAD
+// https://github.com/xypwn/scadqr
+//
 // Copyright (c) 2023 Darwin Schuppan. All rights reserved.
 //
 // This work is licensed under the terms of the MIT license.  

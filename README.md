@@ -17,11 +17,11 @@ qr("https://github.com/xypwn/scadqr", center=true);
 
 ### Usage / Installation
 #### Place the file into your project
-You can simply *right click -> 'save target as'* the [library file](https://raw.githubusercontent.com/xypwn/scadqr/main/LICENSE) directly into your project directory.
+You can simply *right click -> 'save target as'* the [library file](https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad) directly into your project directory.
 
 #### Install the library
 You will be able to use the library in any OpenSCAD project immediately.
-*right click -> 'save target as'* the [library file](https://raw.githubusercontent.com/xypwn/scadqr/main/LICENSE) to
+*right click -> 'save target as'* the [library file](https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad) to
 - `My Documents\OpenSCAD\libraries` on Windows
 - `$HOME/.local/share/OpenSCAD/libraries` on Linux
 - `$HOME/Documents/OpenSCAD/libraries` on Mac

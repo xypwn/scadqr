@@ -61,9 +61,9 @@ You can either
 This library fully supports Thingiverse's Customizer, but you will need to directly append the library code to your SCAD file, as Customizer only supports a single file.
 
 I also noticed Customizer has some weird quirks regarding which SCAD code it will accept and which not. Here are some things you will need to pay attention to:
-    - NEVER use non-ASCII characters, or it will just say *"We're sorry, but something went wrong."*
-    - avoid functional asserts (e.g.: `function f(x) = assert(x > 0) x;`)
-    - some functions like `ord()` aren't available
+- NEVER use non-ASCII characters, or it will just say *"We're sorry, but something went wrong."*
+- avoid functional asserts (e.g.: `function f(x) = assert(x > 0) x;`)
+- some functions like `ord()` aren't available
 
 ---
 Copyright (c) 2023 Darwin Schuppan. All rights reserved.

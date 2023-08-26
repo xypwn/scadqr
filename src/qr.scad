@@ -14,7 +14,8 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
         error_correction == "M" ? EC_M :
         error_correction == "Q" ? EC_Q :
         error_correction == "H" ? EC_H :
-        assert(false, "error_correction must be \"L\", \"M\", \"Q\" or \"H\"");
+        -1;
+    assert(ec_lvl >= EC_L && ec_lvl <= EC_H, "error_correction must be \"L\", \"M\", \"Q\" or \"H\"");
 
     ver = get_version(len(message), ec_lvl);
     size = version2size(ver);
@@ -43,8 +44,7 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 // auth: options: "nopass" (open network), "WPA" (WPA password protection), "WEP" (WEP password protection; obsolete)
 // hidden: whether network is hidden
 function qr_wifi(ssid, psk, auth="WPA", hidden=false) =
-    assert(auth == "nopass" || auth == "WPA" || auth == "WEP",
-        "Invalid value for 'auth'; possible values are: \"nopass\", \"WPA\" and \"WEP\"")
+    (auth != "nopass" && auth != "WPA" && auth != "WEP") ? undef :
     str("WIFI:T:", auth, ";S:", ssid, ";P:", psk, ";", hidden ? "H:true" : "", ";");
 
 // Generates a 'make a phone call' message which can be input into qr().
@@ -84,7 +84,7 @@ function apply_mask_pattern(val, x, y, pat, ver) =
         ((y*x % 2 + y*x % 3) % 2 == 0 ? !val : val) : 
     pat == 7 ?
         ((y*x % 2 + (y+x) % 3) % 2 == 0 ? !val : val) : 
-    assert(false, "Invalid pattern ID (must range from 0 to 7 [incl.])");
+    undef;
 
 // Performs polynomial long division of data_cws by gp
 function do_ec_codewords(gp, data_cws, steps) =
@@ -109,7 +109,7 @@ function ec_codewords(n, data_cws) =
     );
 
 function do_get_version(msg_len, ec_lvl, ver) =
-    assert(ver <= 40, "Unable to find a fitting version, message too large")
+    ver > 40 ? undef :
     char_capacities[ver-1][ec_lvl][2] >= msg_len ?
         ver :
         do_get_version(msg_len, ec_lvl, ver+1);

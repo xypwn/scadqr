@@ -38,7 +38,7 @@ gf256_log = [
     79,174,213,233,230,231,173,232,116,214,244,234,168,80,88,175
 ];
 
-// form is αᵍᵖ⁽⁰⁾x⁰...αᵍᵖ⁽ⁿ⁾xⁿ (gp[i] is this constant at index i)
+// form is alpha^gp[0]*x^0...alpha^gp[n]*x^n (gp[i] is this constant at index i)
 generator_polynomials = [
     [],
     [],

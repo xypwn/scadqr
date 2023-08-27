@@ -59,8 +59,9 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
                 x, y, mask_pattern, ver
             );
             if (val) {
-                translate([x, size-1-y, 0])
-                    cube([1, 1, 1]);
+                epsilon=0.00001; // ensures adjacent modules fuse together when rendering
+                translate([x-epsilon, size-1-y-epsilon, 0])
+                    cube([1+2*epsilon, 1+2*epsilon, 1]);
             }
         }
     }

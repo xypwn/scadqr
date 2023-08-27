@@ -3,7 +3,7 @@
 ---
 #### qr - Generates a QR code encoding plain text.
 ```scad
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0)
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
 ```
 Parameters:
 |Name|Default|Description|
@@ -15,6 +15,7 @@ Parameters:
 |`thickness`|`1`||
 |`center`|`false`||
 |`mask_pattern`|`0`||
+|`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode), "Shift\_JIS" (Shift Japanese International Standards)|
 ---
 ### Functions
 ---

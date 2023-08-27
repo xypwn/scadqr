@@ -8,19 +8,26 @@ include <data.scad>
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0) {
+// encoding: options: "UTF-8" (Unicode), "Shift_JIS" (Shift Japanese International Standards)
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
     ec_lvl =
         error_correction == "L" ? EC_L :
         error_correction == "M" ? EC_M :
         error_correction == "Q" ? EC_Q :
         error_correction == "H" ? EC_H :
-        -1;
+        undef;
     assert(ec_lvl >= EC_L && ec_lvl <= EC_H, "error_correction must be \"L\", \"M\", \"Q\" or \"H\"");
 
-    ver = get_version(len(message), ec_lvl);
+    enc =
+        encoding == "Shift_JIS" ? ENC_SJIS :
+        encoding == "UTF-8" ? ENC_UTF8 :
+        undef;
+    assert(enc >= ENC_SJIS && enc <= ENC_UTF8, "encoding must be \"UTF-8\" or \"Shift_JIS\"");
+
+    ver = get_version(len(message), ec_lvl, enc);
     size = version2size(ver);
 
-    bits = get_bitstream(message, ec_lvl, mask_pattern, ver);
+    bits = get_bitstream(message, ec_lvl, mask_pattern, ver, enc);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0]) {
         scale([width/size, height/size, thickness])
@@ -63,7 +70,20 @@ EC_M = 1; // medium   (15% recovery)
 EC_Q = 2; // quartile (25% recovery)
 EC_H = 3; // high     (30% recovery)
 
+// Encodings supported by this library
+ENC_SJIS = 0; // Shift Japanese International Standards (standard QR code encoding)
+ENC_UTF8 = 1; // Unicode
+
 function version2size(ver) = 17+4*ver;
+
+function get_max_msg_len(ver, ec_lvl, encoding) =
+    let(maxbytes=ectab[ver-1][ec_lvl][0])
+    let(msg_len_bytes=ver <= 9 ? 1 : 2)
+    let(extra_bytes= // see data_codewords() for what these do
+        encoding == ENC_SJIS ? 1 :
+        encoding == ENC_UTF8 ? 2 :
+        undef)
+    maxbytes - msg_len_bytes - extra_bytes;
 
 // Applies one of the 7 mask patterns via XOR
 function apply_mask_pattern(val, x, y, pat, ver) =
@@ -109,16 +129,16 @@ function ec_codewords(n, data_cws) =
         len(data_cws)
     );
 
-function do_get_version(msg_len, ec_lvl, ver) =
+function do_get_version(msg_len, ec_lvl, ver, encoding) =
     ver > len(bit_indices) ? undef : // bit_indices is usually 40 long (max version), but you can remove items if you only need smaller QR codes
-    char_capacities[ver-1][ec_lvl][2] >= msg_len ?
+    get_max_msg_len(ver, ec_lvl, encoding) >= msg_len ?
         ver :
-        do_get_version(msg_len, ec_lvl, ver+1);
+        do_get_version(msg_len, ec_lvl, ver+1, encoding);
 
 // Picks the right QR code size (called version) for
 // the given message length and error correction level
-function get_version(msg_len, ec_lvl) =
-    do_get_version(msg_len, ec_lvl, 1);
+function get_version(msg_len, ec_lvl, encoding) =
+    do_get_version(msg_len, ec_lvl, 1, encoding);
 
 // Error correction patterns converted to decimal
 ec_pats = [
@@ -146,18 +166,45 @@ function pad_bytes(bytes, add) =
 // Encode msg as data codewords, including the header
 // and padding
 // Returns a byte stream
-function data_codewords(msg, ec_lvl, ver) =
+function data_codewords(msg, ec_lvl, ver, encoding) =
     let(msg_bytes=str2bytes(msg))
+    let(max_msg_bytes=get_max_msg_len(ver, ec_lvl, encoding))
     let(msg_len_bits=bytes2bits(ver <= 9 ?
         [ len(msg) ] : 
         [ floor(len(msg)/pow2[8]), len(msg) ]))
+    let(mode=
+        encoding == ENC_SJIS ? [0,1,0,0] :
+        encoding == ENC_UTF8 ? [0,1,1,1] :
+        undef)
+    let(eci_enc=
+        encoding == ENC_SJIS ? [] :
+        encoding == ENC_UTF8 ? bytes2bits([26]) :
+        undef)
+    let(eci_mode=
+        encoding == ENC_SJIS ? [] :
+        encoding == ENC_UTF8 ? [0,1,0,0] :
+        undef)
+    let(terminator=
+        encoding == ENC_SJIS ? [0,0,0,0] :
+        encoding == ENC_UTF8 ? (
+            // the terminator may be omitted if the
+            // message fits perfectly into the maximum
+            // number of bytes
+            len(msg) == max_msg_bytes ?
+                [] : [0,0,0,0,0,0,0,0]
+        ) :
+        undef)
     let(bits=concat(
-        [0,1,0,0], // data encoding: 8-bit byte
-        msg_len_bits, // message length
-        bytes2bits(msg_bytes), // message
-        [0,0,0,0] // 4-bit terminator
+        mode,
+        eci_enc,
+        eci_mode,
+        msg_len_bits,
+        bytes2bits(msg_bytes),
+        terminator
     ))
-    let(pad_amt=char_capacities[ver-1][ec_lvl][2]-len(msg))
+    let(pad_amt=max_msg_bytes
+        -len(msg)
+        -(len(terminator) == 8 ? 1 : 0))
     pad_bytes(bits2bytes(bits), pad_amt);
 
 // Splits the data codewords into the appropriate blocks
@@ -187,10 +234,10 @@ function ec_blocks(data_blocks, ec_lvl, ver) =
     [ for(block=data_blocks)
         ec_codewords(ec_n, block) ];
 
-// Get final encoded data with error
+// Get final encoded data including error
 // correction as bit stream
-function get_bitstream(msg, ec_lvl, mask_pattern, ver) =
-    let(data_blocks=data_blocks(data_codewords(msg, ec_lvl, ver), ec_lvl, ver))
+function get_bitstream(msg, ec_lvl, mask_pattern, ver, encoding) =
+    let(data_blocks=data_blocks(data_codewords(msg, ec_lvl, ver, encoding), ec_lvl, ver))
     let(data_cws=interleave_codewords(data_blocks))
     let(ec_blocks=ec_blocks(data_blocks, ec_lvl, ver))
     let(ec_cws=interleave_codewords(ec_blocks))

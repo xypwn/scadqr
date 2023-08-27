@@ -36,19 +36,26 @@
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0) {
+// encoding: options: "UTF-8" (Unicode), "Shift_JIS" (Shift Japanese International Standards)
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
     ec_lvl =
         error_correction == "L" ? _qr_EC_L :
         error_correction == "M" ? _qr_EC_M :
         error_correction == "Q" ? _qr_EC_Q :
         error_correction == "H" ? _qr_EC_H :
-        -1;
+        undef;
     assert(ec_lvl >= _qr_EC_L && ec_lvl <= _qr_EC_H, "error_correction must be \"L\", \"M\", \"Q\" or \"H\"");
 
-    ver = _qr_get_version(len(message), ec_lvl);
+    enc =
+        encoding == "Shift_JIS" ? _qr_ENC_SJIS :
+        encoding == "UTF-8" ? _qr_ENC_UTF8 :
+        undef;
+    assert(enc >= _qr_ENC_SJIS && enc <= _qr_ENC_UTF8, "encoding must be \"UTF-8\" or \"Shift_JIS\"");
+
+    ver = _qr_get_version(len(message), ec_lvl, enc);
     size = _qr_version2size(ver);
 
-    bits = _qr_get_bitstream(message, ec_lvl, mask_pattern, ver);
+    bits = _qr_get_bitstream(message, ec_lvl, mask_pattern, ver, enc);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0]) {
         scale([width/size, height/size, thickness])
@@ -91,7 +98,20 @@ _qr_EC_M = 1; // medium   (15% recovery)
 _qr_EC_Q = 2; // quartile (25% recovery)
 _qr_EC_H = 3; // high     (30% recovery)
 
+// Encodings supported by this library
+_qr_ENC_SJIS = 0; // Shift Japanese International Standards (standard QR code encoding)
+_qr_ENC_UTF8 = 1; // Unicode
+
 function _qr_version2size(ver) = 17+4*ver;
+
+function _qr_get_max_msg_len(ver, ec_lvl, encoding) =
+    let(maxbytes=_qr_ectab[ver-1][ec_lvl][0])
+    let(msg_len_bytes=ver <= 9 ? 1 : 2)
+    let(extra_bytes= // see _qr_data_codewords() for what these do
+        encoding == _qr_ENC_SJIS ? 1 :
+        encoding == _qr_ENC_UTF8 ? 2 :
+        undef)
+    maxbytes - msg_len_bytes - extra_bytes;
 
 // Applies one of the 7 mask patterns via XOR
 function _qr_apply_mask_pattern(val, x, y, pat, ver) =
@@ -137,16 +157,16 @@ function _qr_ec_codewords(n, data_cws) =
         len(data_cws)
     );
 
-function _qr_do_get_version(msg_len, ec_lvl, ver) =
+function _qr_do_get_version(msg_len, ec_lvl, ver, encoding) =
     ver > len(_qr_bit_indices) ? undef : // _qr_bit_indices is usually 40 long (max version), but you can remove items if you only need smaller QR codes
-    _qr_char_capacities[ver-1][ec_lvl][2] >= msg_len ?
+    _qr_get_max_msg_len(ver, ec_lvl, encoding) >= msg_len ?
         ver :
-        _qr_do_get_version(msg_len, ec_lvl, ver+1);
+        _qr_do_get_version(msg_len, ec_lvl, ver+1, encoding);
 
 // Picks the right QR code size (called version) for
 // the given message length and error correction level
-function _qr_get_version(msg_len, ec_lvl) =
-    _qr_do_get_version(msg_len, ec_lvl, 1);
+function _qr_get_version(msg_len, ec_lvl, encoding) =
+    _qr_do_get_version(msg_len, ec_lvl, 1, encoding);
 
 // Error correction patterns converted to decimal
 _qr_ec_pats = [
@@ -174,18 +194,45 @@ function _qr_pad_bytes(bytes, add) =
 // Encode msg as data codewords, including the header
 // and padding
 // Returns a byte stream
-function _qr_data_codewords(msg, ec_lvl, ver) =
+function _qr_data_codewords(msg, ec_lvl, ver, encoding) =
     let(msg_bytes=_qr_str2bytes(msg))
+    let(max_msg_bytes=_qr_get_max_msg_len(ver, ec_lvl, encoding))
     let(msg_len_bits=_qr_bytes2bits(ver <= 9 ?
         [ len(msg) ] : 
         [ floor(len(msg)/_qr_pow2[8]), len(msg) ]))
+    let(mode=
+        encoding == _qr_ENC_SJIS ? [0,1,0,0] :
+        encoding == _qr_ENC_UTF8 ? [0,1,1,1] :
+        undef)
+    let(eci_enc=
+        encoding == _qr_ENC_SJIS ? [] :
+        encoding == _qr_ENC_UTF8 ? _qr_bytes2bits([26]) :
+        undef)
+    let(eci_mode=
+        encoding == _qr_ENC_SJIS ? [] :
+        encoding == _qr_ENC_UTF8 ? [0,1,0,0] :
+        undef)
+    let(terminator=
+        encoding == _qr_ENC_SJIS ? [0,0,0,0] :
+        encoding == _qr_ENC_UTF8 ? (
+            // the terminator may be omitted if the
+            // message fits perfectly into the maximum
+            // number of bytes
+            len(msg) == max_msg_bytes ?
+                [] : [0,0,0,0,0,0,0,0]
+        ) :
+        undef)
     let(bits=concat(
-        [0,1,0,0], // data encoding: 8-bit byte
-        msg_len_bits, // message length
-        _qr_bytes2bits(msg_bytes), // message
-        [0,0,0,0] // 4-bit terminator
+        mode,
+        eci_enc,
+        eci_mode,
+        msg_len_bits,
+        _qr_bytes2bits(msg_bytes),
+        terminator
     ))
-    let(pad_amt=_qr_char_capacities[ver-1][ec_lvl][2]-len(msg))
+    let(pad_amt=max_msg_bytes
+        -len(msg)
+        -(len(terminator) == 8 ? 1 : 0))
     _qr_pad_bytes(_qr_bits2bytes(bits), pad_amt);
 
 // Splits the data codewords into the appropriate blocks
@@ -215,10 +262,10 @@ function _qr_ec_blocks(data_blocks, ec_lvl, ver) =
     [ for(block=data_blocks)
         _qr_ec_codewords(ec_n, block) ];
 
-// Get final encoded data with error
+// Get final encoded data including error
 // correction as bit stream
-function _qr_get_bitstream(msg, ec_lvl, mask_pattern, ver) =
-    let(data_blocks=_qr_data_blocks(_qr_data_codewords(msg, ec_lvl, ver), ec_lvl, ver))
+function _qr_get_bitstream(msg, ec_lvl, mask_pattern, ver, encoding) =
+    let(data_blocks=_qr_data_blocks(_qr_data_codewords(msg, ec_lvl, ver, encoding), ec_lvl, ver))
     let(data_cws=_qr_interleave_codewords(data_blocks))
     let(ec_blocks=_qr_ec_blocks(data_blocks, ec_lvl, ver))
     let(ec_cws=_qr_interleave_codewords(ec_blocks))
@@ -617,250 +664,6 @@ _qr_ectab = [
         [2334, 28, 18, 47, 31, 48],
         [1666, 30, 34, 24, 34, 25],
         [1276, 30, 20, 15, 61, 16]
-    ]
-];
-
-// numeric / alphanumeric / bytes / kanji
-_qr_char_capacities = [
-    [
-        [41, 25, 17, 10],
-        [34, 20, 14, 8],
-        [27, 16, 11, 7],
-        [17, 10, 7, 4]
-    ],
-    [
-        [77, 47, 32, 20],
-        [63, 38, 26, 16],
-        [48, 29, 20, 12],
-        [34, 20, 14, 8]
-    ],
-    [
-        [127, 77, 53, 32],
-        [101, 61, 42, 26],
-        [77, 47, 32, 20],
-        [58, 35, 24, 15]
-    ],
-    [
-        [187, 114, 78, 48],
-        [149, 90, 62, 38],
-        [111, 67, 46, 28],
-        [82, 50, 34, 21]
-    ],
-    [
-        [255, 154, 106, 65],
-        [202, 122, 84, 52],
-        [144, 87, 60, 37],
-        [106, 64, 44, 27]
-    ],
-    [
-        [322, 195, 134, 82],
-        [255, 154, 106, 65],
-        [178, 108, 74, 45],
-        [139, 84, 58, 36]
-    ],
-    [
-        [370, 224, 154, 95],
-        [293, 178, 122, 75],
-        [207, 125, 86, 53],
-        [154, 93, 64, 39]
-    ],
-    [
-        [461, 279, 192, 118],
-        [365, 221, 152, 93],
-        [259, 157, 108, 66],
-        [202, 122, 84, 52]
-    ],
-    [
-        [552, 335, 230, 141],
-        [432, 262, 180, 111],
-        [312, 189, 130, 80],
-        [235, 143, 98, 60]
-    ],
-    [
-        [652, 395, 271, 167],
-        [513, 311, 213, 131],
-        [364, 221, 151, 93],
-        [288, 174, 119, 74]
-    ],
-    [
-        [772, 468, 321, 198],
-        [604, 366, 251, 155],
-        [427, 259, 177, 109],
-        [331, 200, 137, 85]
-    ],
-    [
-        [883, 535, 367, 226],
-        [691, 419, 287, 177],
-        [489, 296, 203, 125],
-        [374, 227, 155, 96]
-    ],
-    [
-        [1022, 619, 425, 262],
-        [796, 483, 331, 204],
-        [580, 352, 241, 149],
-        [427, 259, 177, 109]
-    ],
-    [
-        [1101, 667, 458, 282],
-        [871, 528, 362, 223],
-        [621, 376, 258, 159],
-        [468, 283, 194, 120]
-    ],
-    [
-        [1250, 758, 520, 320],
-        [991, 600, 412, 254],
-        [703, 426, 292, 180],
-        [530, 321, 220, 136]
-    ],
-    [
-        [1408, 854, 586, 361],
-        [1082, 656, 450, 277],
-        [775, 470, 322, 198],
-        [602, 365, 250, 154]
-    ],
-    [
-        [1548, 938, 644, 397],
-        [1212, 734, 504, 310],
-        [876, 531, 364, 224],
-        [674, 408, 280, 173]
-    ],
-    [
-        [1725, 1046, 718, 442],
-        [1346, 816, 560, 345],
-        [948, 574, 394, 243],
-        [746, 452, 310, 191]
-    ],
-    [
-        [1903, 1153, 792, 488],
-        [1500, 909, 624, 384],
-        [1063, 644, 442, 272],
-        [813, 493, 338, 208]
-    ],
-    [
-        [2061, 1249, 858, 528],
-        [1600, 970, 666, 410],
-        [1159, 702, 482, 297],
-        [919, 557, 382, 235]
-    ],
-    [
-        [2232, 1352, 929, 572],
-        [1708, 1035, 711, 438],
-        [1224, 742, 509, 314],
-        [969, 587, 403, 248]
-    ],
-    [
-        [2409, 1460, 1003, 618],
-        [1872, 1134, 779, 480],
-        [1358, 823, 565, 348],
-        [1056, 640, 439, 270]
-    ],
-    [
-        [2620, 1588, 1091, 672],
-        [2059, 1248, 857, 528],
-        [1468, 890, 611, 376],
-        [1108, 672, 461, 284]
-    ],
-    [
-        [2812, 1704, 1171, 721],
-        [2188, 1326, 911, 561],
-        [1588, 963, 661, 407],
-        [1228, 744, 511, 315]
-    ],
-    [
-        [3057, 1853, 1273, 784],
-        [2395, 1451, 997, 614],
-        [1718, 1041, 715, 440],
-        [1286, 779, 535, 330]
-    ],
-    [
-        [3283, 1990, 1367, 842],
-        [2544, 1542, 1059, 652],
-        [1804, 1094, 751, 462],
-        [1425, 864, 593, 365]
-    ],
-    [
-        [3517, 2132, 1465, 902],
-        [2701, 1637, 1125, 692],
-        [1933, 1172, 805, 496],
-        [1501, 910, 625, 385]
-    ],
-    [
-        [3669, 2223, 1528, 940],
-        [2857, 1732, 1190, 732],
-        [2085, 1263, 868, 534],
-        [1581, 958, 658, 405]
-    ],
-    [
-        [3909, 2369, 1628, 1002],
-        [3035, 1839, 1264, 778],
-        [2181, 1322, 908, 559],
-        [1677, 1016, 698, 430]
-    ],
-    [
-        [4158, 2520, 1732, 1066],
-        [3289, 1994, 1370, 843],
-        [2358, 1429, 982, 604],
-        [1782, 1080, 742, 457]
-    ],
-    [
-        [4417, 2677, 1840, 1132],
-        [3486, 2113, 1452, 894],
-        [2473, 1499, 1030, 634],
-        [1897, 1150, 790, 486]
-    ],
-    [
-        [4686, 2840, 1952, 1201],
-        [3693, 2238, 1538, 947],
-        [2670, 1618, 1112, 684],
-        [2022, 1226, 842, 518]
-    ],
-    [
-        [4965, 3009, 2068, 1273],
-        [3909, 2369, 1628, 1002],
-        [2805, 1700, 1168, 719],
-        [2157, 1307, 898, 553]
-    ],
-    [
-        [5253, 3183, 2188, 1347],
-        [4134, 2506, 1722, 1060],
-        [2949, 1787, 1228, 756],
-        [2301, 1394, 958, 590]
-    ],
-    [
-        [5529, 3351, 2303, 1417],
-        [4343, 2632, 1809, 1113],
-        [3081, 1867, 1283, 790],
-        [2361, 1431, 983, 605]
-    ],
-    [
-        [5836, 3537, 2431, 1496],
-        [4588, 2780, 1911, 1176],
-        [3244, 1966, 1351, 832],
-        [2524, 1530, 1051, 647]
-    ],
-    [
-        [6153, 3729, 2563, 1577],
-        [4775, 2894, 1989, 1224],
-        [3417, 2071, 1423, 876],
-        [2625, 1591, 1093, 673]
-    ],
-    [
-        [6479, 3927, 2699, 1661],
-        [5039, 3054, 2099, 1292],
-        [3599, 2181, 1499, 923],
-        [2735, 1658, 1139, 701]
-    ],
-    [
-        [6743, 4087, 2809, 1729],
-        [5313, 3220, 2213, 1362],
-        [3791, 2298, 1579, 972],
-        [2927, 1774, 1219, 750]
-    ],
-    [
-        [7089, 4296, 2953, 1817],
-        [5596, 3391, 2331, 1435],
-        [3993, 2420, 1663, 1024],
-        [3057, 1852, 1273, 784]
     ]
 ];
 

@@ -101,7 +101,7 @@ def generate(outfile, outdocfile, infiles):
                                 description = ''
                                 for l in comment.split('\n'):
                                     if l.startswith(name+':'):
-                                        description = l.removeprefix(name+':').strip()
+                                        description = l.removeprefix(name+':').strip().replace('_', '\\_')
                                 args.append((name, default, description))
                             docdefs.append((m[0], m[1], comment.partition('\n')[0], args))
                     else:

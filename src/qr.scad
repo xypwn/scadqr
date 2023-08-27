@@ -98,13 +98,13 @@ function apply_mask_pattern(val, x, y, pat, ver) =
     pat == 3 ?
         ((y + x) % 3 == 0 ? !val : val) : 
     pat == 4 ?
-        ((floor(y/2) + floor(x/3)) % 3 == 0 ? !val : val) : 
+        ((floor(y/2) + floor(x/3)) % 2 == 0 ? !val : val) : 
     pat == 5 ?
         (y*x % 2 + y*x % 3 == 0 ? !val : val) : 
     pat == 6 ?
         ((y*x % 2 + y*x % 3) % 2 == 0 ? !val : val) : 
     pat == 7 ?
-        ((y*x % 2 + (y+x) % 3) % 2 == 0 ? !val : val) : 
+        ((y*x%3 + y+x) % 2 == 0 ? !val : val) : 
     undef;
 
 // Performs polynomial long division of data_cws by gp

@@ -1,0 +1,121 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "all": {
+            "qrcode_type": "text",
+            "text": "https:\/\/openscad.org\/cheatsheet\/",
+            "auth": "WPA",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "false",
+            "phone": "0123456789",
+            "width": "100",
+            "height": "100",
+            "thickness": "5",
+            "center": "true",
+            "encoding": "UTF-8",
+            "error_correction": "L",
+            "mask_pattern": "0"
+        },
+        "wifi_WPA": {
+            "qrcode_type": "wifi",
+            "auth": "WPA",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "0"
+        },
+        "wifi2_WPA": {
+            "qrcode_type": "wifi",
+            "auth": "WPA",
+            "ssid": "wireless_fidelity",
+            "psk": "PigOtter"
+        },
+        "wifi_WEP": {
+            "qrcode_type": "wifi",
+            "auth": "WEP",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "0"
+        },
+        "wifi_nopass": {
+            "qrcode_type": "wifi",
+            "auth": "nopass",
+            "ssid": "wifi_network",
+            "psk": "",
+            "hidden": "0"
+        },
+        "wifi_hidden": {
+            "qrcode_type": "wifi",
+            "auth": "WPA",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "1"
+        },
+        "phone": {
+            "qrcode_type": "phone",
+            "phone": "+33 1 23 45 67 89"
+        },
+        "text_utf8": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum",
+            "encoding": "UTF-8",
+            "error_correction": "L",
+            "mask_pattern": "0"
+        },
+        "text_Shift_JIS": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum",
+            "encoding": "Shift_JIS"
+        },
+        "error_correction_M": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum1",
+            "error_correction": "M"
+        },
+        "error_correction_Q": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum2",
+            "error_correction": "Q"
+        },
+        "error_correction_H": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum3",
+            "error_correction": "H"
+        },
+        "mask_pattern_1": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_1",
+            "mask_pattern": "1"
+        },
+        "mask_pattern_2": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_2",
+            "mask_pattern": "2"
+        },
+        "mask_pattern_3": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_3",
+            "mask_pattern": "3"
+        },
+        "mask_pattern_4": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_4",
+            "mask_pattern": "4"
+        },
+        "mask_pattern_5": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_5",
+            "mask_pattern": "5"
+        },
+        "mask_pattern_6": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_6",
+            "mask_pattern": "6"
+        },
+        "mask_pattern_7": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum_7",
+            "mask_pattern": "7"
+        }
+    }
+}

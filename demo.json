@@ -1,0 +1,36 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "url": {
+            "qrcode_type": "text",
+            "text": "https:\/\/openscad.org\/cheatsheet\/",
+            "auth": "WPA",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "false",
+            "phone": "0123456789",
+            "width": "100",
+            "height": "100",
+            "thickness": "5",
+            "center": "true",
+            "encoding": "UTF-8",
+            "error_correction": "L",
+            "mask_pattern": "0"
+        },
+        "wifi_WPA": {
+            "qrcode_type": "wifi",
+            "auth": "WPA",
+            "ssid": "wifi_network",
+            "psk": "1234",
+            "hidden": "false"
+        },
+        "phone": {
+            "qrcode_type": "phone",
+            "phone": "+33 1 23 45 67 89"
+        },
+        "text": {
+            "qrcode_type": "text",
+            "text": "lorem ipsum"
+        }
+    }
+}

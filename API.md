@@ -15,7 +15,7 @@ Parameters:
 |`thickness`|`1`||
 |`center`|`false`||
 |`mask_pattern`|`0`||
-|`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode), "Shift\_JIS" (Shift Japanese International Standards)|
+|`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
 ---
 ### Functions
 ---

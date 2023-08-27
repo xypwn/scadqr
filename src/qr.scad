@@ -8,7 +8,7 @@ include <data.scad>
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
-// encoding: options: "UTF-8" (Unicode), "Shift_JIS" (Shift Japanese International Standards)
+// encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
     ec_lvl =
         error_correction == "L" ? EC_L :

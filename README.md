@@ -65,6 +65,15 @@ I also noticed Customizer has some weird quirks regarding which SCAD code it wil
 - avoid functional asserts (e.g.: `function f(x) = assert(x > 0) x;`)
 - some functions like `ord()` aren't available
 
+## How to run tests
+
+Install `zbarimg` (on debian based linux `apt-get -y install zbar-tools xvfb`)
+
+run tests
+```bash
+./run_tests.py
+```
+
 ---
 Copyright (c) 2023 Darwin Schuppan. All rights reserved.
 

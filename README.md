@@ -65,14 +65,28 @@ I also noticed Customizer has some weird quirks regarding which SCAD code it wil
 - avoid functional asserts (e.g.: `function f(x) = assert(x > 0) x;`)
 - some functions like `ord()` aren't available
 
-## How to run tests
+### Development
 
-Install `zbarimg` (on debian based linux `apt-get -y install zbar-tools xvfb`)
+#### Generating the library files
+The source code is located in `src/` and run through the `generate.py` script in order to generate the all-in-one library files intented to be used.
 
-run tests
-```bash
-./run_tests.py
-```
+The generator script mainly does three things:
+- Prefix private functions/modules with `_qr_` to prevent naming collisions
+- Generate documentation for public functions/modules and output it to `API.md`
+- Output the different versions of the library into their respective `qr-<max version>.scad` file
+
+Run generator: `./generate.py`
+
+#### Running the tests
+To confirm that QR codes are generating correctly, you can run the automatic tests **after** having run `generate.py`.
+
+Install OpenSCAD and ZBar
+- Debian-based (e.g. Ubuntu, PopOS etc.):  `sudo apt-get update && sudo apt-get -y install openscad zbar-tools`
+- Arch-based (e.g. Manjaro):  `sudo pacman -Sy openscad zbar --noconfirm`
+
+Run tests: `./run_tests.py`
+
+If you get an error, maybe it can't detect your OpenSCAD or ZBar installation; see `./run_tests.py -h`
 
 ---
 Copyright (c) 2023 Darwin Schuppan. All rights reserved.

@@ -66,6 +66,9 @@ I also noticed Customizer has some weird quirks regarding which SCAD code it wil
 - some functions like `ord()` aren't available
 
 ### Development
+All scripts ending with `.py` require a recent version of [Python](https://www.python.org/downloads/).
+
+You will also need to run them from inside the cloned repo's directory.
 
 #### Generating the library files
 The source code is located in `src/` and run through the `generate.py` script in order to generate the all-in-one library files intented to be used.
@@ -75,7 +78,9 @@ The generator script mainly does three things:
 - Generate documentation for public functions/modules and output it to `API.md`
 - Output the different versions of the library into their respective `qr-<max version>.scad` file
 
-Run generator: `./generate.py`
+Run generator (Linux/MacOS): `./generate.py`
+
+Run generator (Windows): `py generate.py`
 
 #### Running the tests
 To confirm that QR codes are generating correctly, you can run the automatic tests **after** having run `generate.py`.
@@ -83,8 +88,11 @@ To confirm that QR codes are generating correctly, you can run the automatic tes
 Install OpenSCAD and ZBar
 - Debian-based (e.g. Ubuntu, PopOS etc.):  `sudo apt-get update && sudo apt-get -y install openscad zbar-tools`
 - Arch-based (e.g. Manjaro):  `sudo pacman -Sy openscad zbar --noconfirm`
+- Windows: Download and run the respective installers for [OpenSCAD](https://openscad.org/downloads.html) and [ZBar](https://zbar.sourceforge.net/download.html)
 
-Run tests: `./run_tests.py`
+Run tests (Linux/MacOS): `./run_tests.py`
+
+Run generator (Windows): `py run_tests.py`
 
 If it can't find your OpenSCAD or ZBar executable, you can use the `-s` and `-z` options respectively to specify a custom path.
 

@@ -86,7 +86,7 @@ Install OpenSCAD and ZBar
 
 Run tests: `./run_tests.py`
 
-If you get an error, maybe it can't detect your OpenSCAD or ZBar installation; see `./run_tests.py -h`
+If it can't find your OpenSCAD or ZBar executable, you can use the `-o` and `-z` options respectively to specify a custom path.
 
 ---
 Copyright (c) 2023 Darwin Schuppan. All rights reserved.

@@ -18,6 +18,7 @@ tests = [
     ['wifi_nopass', 'WIFI:T:nopass;S:wifi_network;P:;;'],
     ['wifi_hidden', 'WIFI:T:WPA;S:wifi_network;P:1234;H:true;'],
     ['phone', 'TEL:+33 1 23 45 67 89'],
+    ['question_mark', 'What text could this QR code possibly contain?????'],
     ['text_utf8', 'lorem ipsum'],
     ['text_Shift_JIS', '|orem ipsum'],
     ['error_correction_M', 'lorem ipsum1'],

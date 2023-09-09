@@ -55,6 +55,10 @@
             "qrcode_type": "phone",
             "phone": "+33 1 23 45 67 89"
         },
+        "question_mark": {
+            "qrcode_type": "text",
+            "text": "What text could this QR code possibly contain?????"
+        },
         "text_utf8": {
             "qrcode_type": "text",
             "text": "lorem ipsum",

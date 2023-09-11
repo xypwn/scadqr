@@ -92,7 +92,7 @@ Install OpenSCAD and ZBar
 
 Run tests (Linux/MacOS): `./run_tests.py`
 
-Run generator (Windows): `py run_tests.py`
+Run tests (Windows): `py run_tests.py`
 
 If it can't find your OpenSCAD or ZBar executable, you can use the `-s` and `-z` options respectively to specify a custom path.
 

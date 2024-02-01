@@ -66,7 +66,7 @@ Run tests (Windows): `py run_tests.py`
 If it can't find your OpenSCAD or ZBar executable, you can use the `-s` and `-z` options respectively to specify a custom path.
 
 ---
-Copyright (c) 2023 Darwin Schuppan. All rights reserved.
+Copyright (c) 2024 Darwin Schuppan. All rights reserved.
 
 This work is licensed under the terms of the MIT license.  
 For a copy, see <https://opensource.org/licenses/MIT>.

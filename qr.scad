@@ -478,64 +478,6 @@ function _qr_next_module_position(prev, size, depth=0) =
         _qr_next_module_position([x-1, y], size, depth+1)
     ) :
     [x, y];
-
-// Distance between alignment patterns
-// (excluding the first one which is
-// always at x=6)
-function _qr_alignment_pattern_step(ver) =
-    let(size=_qr_version2size(ver))
-    let(n=_qr_n_alignment_patterns(ver))
-    ceil((size-1-12)/(n-1));
-
-// x can be either x or y; does not account
-// for illegal positions
-function _qr_coord_is_in_alignment_pattern(x, size) =
-    let(ver=_qr_size2version(size))
-    let(s=_qr_alignment_pattern_step(ver))
-    ver == 1 ? false :
-    (x >= 4 && x < 9) ||
-    (
-        (x > 6+2) &&
-        ((s+size-1-6+2-x)%s) < 5
-    );
-
-function _qr_region_is_in_bounds(x, y, size) =
-    x >= 0 && x < size &&
-    y >= 0 && y < size;
-
-function _qr_region_is_data(x, y, size) =
-    _qr_region_is_in_bounds(x, y, size) &&
-    // position squares and format info
-    !(
-        (x < 9 && y < 9) ||
-        (x < 9 && y > size-9) ||
-        (y < 9 && x > size-9)
-    ) &&
-    // version info
-    !(
-        size >= _qr_version2size(7) && (
-            (x < 6 && y > size-12) ||
-            (y < 6 && x > size-12)
-        )
-    ) &&
-    // timing pattern
-    !(x == 6 || y == 6) &&
-    // alignment pattern
-    !(
-        size > _qr_version2size(1) &&
-        !(
-            // illegal position
-            // for alignment patterns
-            // (intersecting with
-            // position pattern)
-            (x == size-9 && y < 9) ||
-            (y == size-9 && x < 9)
-        ) &&
-        (
-            _qr_coord_is_in_alignment_pattern(x, size) &&
-            _qr_coord_is_in_alignment_pattern(y, size)
-        )
-    );
 //
 // Bit operation utils (not specific to QR)
 //

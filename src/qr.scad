@@ -1,3 +1,4 @@
+include <bits.scad>
 include <data.scad>
 
 //
@@ -9,7 +10,20 @@ include <data.scad>
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") 
+    qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding) {
+        default_module();
+        default_position_pattern();
+        default_alignment_pattern();
+}
+
+// Generates a QR code using custom elements.
+// See qr() for parameter docs.
+// Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, height = 1mm):
+// - children(0): Module (black pixel)
+// - children(1): Position pattern
+// - children(2): Alignment pattern
+module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
     ec_lvl =
         error_correction == "L" ? EC_L :
         error_correction == "M" ? EC_M :
@@ -27,21 +41,74 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
     ver = get_version(len(message), ec_lvl, enc);
     size = version2size(ver);
 
-    bits = get_bitstream(message, ec_lvl, mask_pattern, ver, enc);
+    bits = encode_message(message, ec_lvl, mask_pattern, ver, enc);
+    
+    positions = data_bit_positions(size);
 
-    translate(center ? [-width/2, -height/2, 0] : [0,0,0]) {
-        scale([width/size, height/size, thickness])
-        for (y=[0:size-1], x=[0:size-1]) {
-            bi = bit_indices[ver-1][y][x];
+    translate(center ? [-width/2, -height/2, 0] : [0,0,0])
+    scale([width/size, height/size, thickness]) {
+        // Position patterns
+        for(i=[[0,6],[size-7,6],[0,size-1]])
+            translate([i[0], size-1-i[1], 0])
+            children(1);
+        // Timing patterns
+        for(x=[8:size-1-8])
+            if (x%2 == 0)
+            module_1(size, x, 6) children(0);
+        for(y=[8:size-1-8])
+            if (y%2 == 0)
+            module_1(size, 6, y) children(0);
+        // Alignment patterns
+        n_align_pats = n_alignment_patterns(ver);
+        align_pat_step = alignment_pattern_step(ver);
+        align_pat_last = size-1-6;
+        align_pat_coords = concat([6], [
+            for(i=[0:max(0, n_align_pats-2)]) align_pat_last-i*align_pat_step
+        ]);
+        for(y=align_pat_coords,x=align_pat_coords)
+            if (!(
+                (x == 6 && y == 6) ||
+                (x == 6 && y == align_pat_last) ||
+                (x == align_pat_last && y == 6)
+            ))
+            translate([x-2, size-1-y-2, 0])
+            children(2);
+        // Version information
+        if(ver >= 7) {
+            verinf = verinf_bits(ver);
+            for(i=[0:17])
+                if (verinf[17-i])
+                module_1(size, floor(i/3), size-11+i%3) children(0);
+            for(i=[0:17])
+                if (verinf[17-i])
+                module_1(size, size-11+i%3, floor(i/3)) children(0);
+        }
+        // Format info
+        fmtinf = fmtinf_bits(ec_lvl, mask_pattern);
+        for(i=[0:7])
+            if (fmtinf[14-i])
+            module_1(size, 8, i <= 5 ? i : i+1) children(0);;
+        for(i=[8:14])
+            if (fmtinf[14-i])
+            module_1(size, 15-(i <= 8 ? i : i+1), 8) children(0);;
+        for(i=[0:7])
+            if (fmtinf[14-i])
+            module_1(size, size-1-i, 8) children(0);;
+        for(i=[8:14])
+            if (fmtinf[14-i])
+            module_1(size, 8, size-1-6+i-8) children(0);;
+        module_1(size, 8, size-1-7) children(0);;
+        // Modules
+        for(p=positions) {
+            x = p[0];
+            y = p[1];
+            i = p[2];
             val = apply_mask_pattern(
-                bi < len(bits) ? bits[bi] : 0,
-                x, y, mask_pattern, ver
+                bits[i],
+                x, y, mask_pattern
             );
-            if (val) {
-                epsilon=0.00001; // ensures adjacent modules fuse together when rendering
-                translate([x-epsilon, size-1-y-epsilon, 0])
-                    cube([1+2*epsilon, 1+2*epsilon, 1]);
-            }
+            if (val)
+                module_1(size, x, y) children(0);
         }
     }
 }
@@ -62,7 +129,47 @@ function qr_phone_call(number) =
 //@PRIVATE
 
 //
-// QR code related utils
+// QR code helper modules
+//
+module default_module() {
+    cube([1, 1, 1]);
+}
+
+module default_position_pattern() linear_extrude(1) union() {
+    difference() {
+        square(7);
+        translate([1, 1, 0])
+            square(5);
+    }
+    translate([2, 2, 0])
+        square(3);
+}
+
+module default_alignment_pattern() linear_extrude(1) union() {
+    difference() {
+        square(5);
+        translate([1, 1, 0])
+            square(3);
+    }
+    translate([2, 2, 0])
+        square(1);
+}
+
+module module_1(size, x, y) {
+    epsilon=0.00001; // ensures adjacent modules fuse together when rendering
+    translate([x-epsilon, size-1-y-epsilon, 0])
+        scale([1+2*epsilon, 1+2*epsilon, 1])
+        children(0);
+}
+
+function data_bit_positions(size, index=0, pos=undef, acc=[]) =
+    let(nextpos=next_module_position(pos, size))
+    nextpos == undef ? acc :
+    let(app=concat([nextpos[0], nextpos[1]], index))
+    data_bit_positions(size, index+1, nextpos, concat([app], acc));
+
+//
+// QR code general functions
 //
 // Error correction levels
 EC_L = 0; // low      (7% recovery)
@@ -75,20 +182,21 @@ ENC_SJIS = 0; // Shift Japanese International Standards (standard QR code encodi
 ENC_UTF8 = 1; // Unicode
 
 function version2size(ver) = 17+4*ver;
+function size2version(size) = (size-17)/4;
 
-function get_max_msg_len(ver, ec_lvl, encoding) =
-    let(maxbytes=ectab[ver-1][ec_lvl][0])
-    let(msg_len_bytes=ver <= 9 ? 1 : 2)
-    let(extra_bytes= // see data_codewords() for what these do
-        encoding == ENC_SJIS ? 1 :
-        encoding == ENC_UTF8 ? 2 :
-        undef)
-    maxbytes - msg_len_bytes - extra_bytes;
+function do_get_version(msg_len, ec_lvl, ver, encoding) =
+    ver > 40 ? undef :
+    get_max_msg_len(ver, ec_lvl, encoding) >= msg_len ?
+        ver :
+        do_get_version(msg_len, ec_lvl, ver+1, encoding);
+
+// Picks the right QR code size (called version) for
+// the given message length and error correction level
+function get_version(msg_len, ec_lvl, encoding) =
+    do_get_version(msg_len, ec_lvl, 1, encoding);
 
 // Applies one of the 7 mask patterns via XOR
-function apply_mask_pattern(val, x, y, pat, ver) =
-    let(data_offset=17) // see get_bitstream() for why 0-16 are reserved
-    bit_indices[ver-1][y][x] < data_offset ? val :
+function apply_mask_pattern(val, x, y, pat) =
     pat == 0 ?
         ((y + x) % 2 == 0 ? !val : val) : 
     pat == 1 ?
@@ -106,6 +214,18 @@ function apply_mask_pattern(val, x, y, pat, ver) =
     pat == 7 ?
         ((y*x%3 + y+x) % 2 == 0 ? !val : val) : 
     undef;
+
+//
+// QR code message encoding
+//
+function get_max_msg_len(ver, ec_lvl, encoding) =
+    let(maxbytes=ectab[ver-1][ec_lvl][0])
+    let(msg_len_bytes=ver <= 9 ? 1 : 2)
+    let(extra_bytes= // see data_codewords() for what these do
+        encoding == ENC_SJIS ? 1 :
+        encoding == ENC_UTF8 ? 2 :
+        undef)
+    maxbytes - msg_len_bytes - extra_bytes;
 
 // Performs polynomial long division of data_cws by gp
 function do_ec_codewords(gp, data_cws, steps) =
@@ -129,17 +249,6 @@ function ec_codewords(n, data_cws) =
         len(data_cws)
     );
 
-function do_get_version(msg_len, ec_lvl, ver, encoding) =
-    ver > len(bit_indices) ? undef : // bit_indices is usually 40 long (max version), but you can remove items if you only need smaller QR codes
-    get_max_msg_len(ver, ec_lvl, encoding) >= msg_len ?
-        ver :
-        do_get_version(msg_len, ec_lvl, ver+1, encoding);
-
-// Picks the right QR code size (called version) for
-// the given message length and error correction level
-function get_version(msg_len, ec_lvl, encoding) =
-    do_get_version(msg_len, ec_lvl, 1, encoding);
-
 // Error correction patterns converted to decimal
 ec_pats = [
     1,
@@ -152,6 +261,10 @@ ec_pats = [
 function fmtinf_bits(ec_lvl, mask_pat) =
     // equivalent to: ec_lvl << 3 | mask_pat
     fmtinf_strs[ec_pats[ec_lvl] * pow2[3] + mask_pat];
+
+// Look up version info bits
+function verinf_bits(ver) =
+    verinf_strs[ver-1];
 
 // Pads bytes with add additional bytes
 // The padding bytes alternate between the
@@ -235,15 +348,171 @@ function ec_blocks(data_blocks, ec_lvl, ver) =
         ec_codewords(ec_n, block) ];
 
 // Get final encoded data including error
-// correction as bit stream
-function get_bitstream(msg, ec_lvl, mask_pattern, ver, encoding) =
+// correction as bits
+function encode_message(msg, ec_lvl, mask_pattern, ver, encoding) =
     let(data_blocks=data_blocks(data_codewords(msg, ec_lvl, ver, encoding), ec_lvl, ver))
     let(data_cws=interleave_codewords(data_blocks))
     let(ec_blocks=ec_blocks(data_blocks, ec_lvl, ver))
     let(ec_cws=interleave_codewords(ec_blocks))
     concat(
-        [0,1], // 0/1 constants
-        fmtinf_bits(ec_lvl, mask_pattern), // format info
         bytes2bits(data_cws), // data codewords
         bytes2bits(ec_cws) // error correction
+    );
+
+
+//
+// QR code module placement
+//
+// Gets the maximum alignment patterns per row /
+// column, NOT the overall total
+function n_alignment_patterns(ver) =
+    ver == 1 ? 0 :
+    floor(ver/7)+2;
+
+// Distance between alignment patterns
+// (excluding the first one which is
+// always at x=6)
+function alignment_pattern_step(ver) =
+    let(size=version2size(ver))
+    let(n=n_alignment_patterns(ver))
+    2*ceil((size-1-12)/(2*(n-1)));
+
+// x can be either x or y; does not account
+// for illegal positions
+function coord_is_in_alignment_pattern(x, size) =
+    let(ver=size2version(size))
+    let(s=alignment_pattern_step(ver))
+    ver == 1 ? false :
+    (x >= 4 && x < 9) ||
+    (
+        (x > 6+2) &&
+        ((s+size-1-6+2-x)%s) < 5
+    );
+
+function region_is_in_bounds(x, y, size) =
+    x >= 0 && x < size &&
+    y >= 0 && y < size;
+
+function region_is_data(x, y, size) =
+    region_is_in_bounds(x, y, size) &&
+    // position squares and format info
+    !(
+        (x < 9 && y < 9) ||
+        (x < 9 && y > size-9) ||
+        (y < 9 && x > size-9)
+    ) &&
+    // version info
+    !(
+        size >= version2size(7) && (
+            (x < 6 && y > size-12) ||
+            (y < 6 && x > size-12)
+        )
+    ) &&
+    // timing pattern
+    !(x == 6 || y == 6) &&
+    // alignment pattern
+    !(
+        size > version2size(1) &&
+        !(
+            // illegal position
+            // for alignment patterns
+            // (intersecting with
+            // position pattern)
+            (x == size-9 && y < 9) ||
+            (y == size-9 && x < 9)
+        ) &&
+        (
+            coord_is_in_alignment_pattern(x, size) &&
+            coord_is_in_alignment_pattern(y, size)
+        )
+    );
+
+// Finds the next free module starting
+// from x, y while going in the y-direction
+// ydir in a right-to-left zig-zag
+function find_next_free_module(x, y, ydir, size, depth=0) =
+    region_is_data(x, y, size) ? [x, y] :
+    region_is_data(x-1, y, size) ? [x-1, y] :
+    find_next_free_module(x, y+ydir, ydir, size, depth+1);
+
+function next_module_position(prev, size, depth=0) =
+    prev == undef ? [size-1, size-1] :
+    let(eff_x=
+        prev[0] < 6 ? prev[0] :
+        prev[0]-1)
+    let(ydir=
+        eff_x % 4 < 2 ? 1 : -1)
+    let(right=eff_x % 2 == 1)
+    let(x=
+        right ? prev[0]-1 : prev[0]+1)
+    let(y=
+        right ? prev[1] : prev[1] + ydir)
+    !region_is_in_bounds(x, y, size) ? (
+        x < 2 ? undef :
+        let(x=
+            x == 8 ? x-3 : x-2) // go 1 further left if module would collide with timing pattern
+        find_next_free_module(x, y, -ydir, size)
+    ) :
+    !region_is_data(x, y, size) ? (
+        region_is_data(x-1, y, size) ? [x-1, y] :
+        next_module_position([x-1, y], size, depth+1)
+    ) :
+    [x, y];
+
+// Distance between alignment patterns
+// (excluding the first one which is
+// always at x=6)
+function alignment_pattern_step(ver) =
+    let(size=version2size(ver))
+    let(n=n_alignment_patterns(ver))
+    ceil((size-1-12)/(n-1));
+
+// x can be either x or y; does not account
+// for illegal positions
+function coord_is_in_alignment_pattern(x, size) =
+    let(ver=size2version(size))
+    let(s=alignment_pattern_step(ver))
+    ver == 1 ? false :
+    (x >= 4 && x < 9) ||
+    (
+        (x > 6+2) &&
+        ((s+size-1-6+2-x)%s) < 5
+    );
+
+function region_is_in_bounds(x, y, size) =
+    x >= 0 && x < size &&
+    y >= 0 && y < size;
+
+function region_is_data(x, y, size) =
+    region_is_in_bounds(x, y, size) &&
+    // position squares and format info
+    !(
+        (x < 9 && y < 9) ||
+        (x < 9 && y > size-9) ||
+        (y < 9 && x > size-9)
+    ) &&
+    // version info
+    !(
+        size >= version2size(7) && (
+            (x < 6 && y > size-12) ||
+            (y < 6 && x > size-12)
+        )
+    ) &&
+    // timing pattern
+    !(x == 6 || y == 6) &&
+    // alignment pattern
+    !(
+        size > version2size(1) &&
+        !(
+            // illegal position
+            // for alignment patterns
+            // (intersecting with
+            // position pattern)
+            (x == size-9 && y < 9) ||
+            (y == size-9 && x < 9)
+        ) &&
+        (
+            coord_is_in_alignment_pattern(x, size) &&
+            coord_is_in_alignment_pattern(y, size)
+        )
     );

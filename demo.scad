@@ -37,7 +37,7 @@ mask_pattern = 0; // [0:"000: (y + x)%2=0", 1:"001: y % 2=0", 2:"010: x % 3=0", 
 // Character encoding
 encoding = "UTF-8"; // [ UTF-8:"UTF-8 (Unicode)", Shift_JIS:"Shift JIS (Shift Japanese International Standards)"]
 
-include <qr-10.scad>
+include <qr.scad>
 
 content =
     qrcode_type == "wifi" ? qr_wifi(ssid, psk, auth, hidden) :

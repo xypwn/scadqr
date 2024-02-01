@@ -79,6 +79,9 @@ for i, test in enumerate(tests):
     except FileNotFoundError:
         exe_not_found('zbarimg', args.zbarimg, '-z')
         exit()
+    except subprocess.CalledProcessError as e:
+        print(f'{col.RED}critical failure{col.RESET} test "{testname}": {e.cmd} returned with error {e.returncode}: "{e.output}"')
+        exit()
 
     if (res == expect):
         tests_passed += 1

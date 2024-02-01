@@ -42,7 +42,7 @@ You will also need to run them from inside the cloned repo's directory.
 #### Generating the library files
 The source code is located in `src/` and run through the `generate.py` script in order to generate the all-in-one library files intented to be used.
 
-The generator script mainly does three things:
+The generator script mainly does two things:
 - Prefix private functions/modules with `_qr_` to prevent naming collisions
 - Generate documentation for public functions/modules and output it to `API.md`
 

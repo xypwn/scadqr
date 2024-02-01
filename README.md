@@ -45,7 +45,6 @@ The source code is located in `src/` and run through the `generate.py` script in
 The generator script mainly does three things:
 - Prefix private functions/modules with `_qr_` to prevent naming collisions
 - Generate documentation for public functions/modules and output it to `API.md`
-- Output the different versions of the library into their respective `qr-<max version>.scad` file
 
 Run generator (Linux/MacOS): `./generate.py`
 

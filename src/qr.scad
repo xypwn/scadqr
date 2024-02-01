@@ -49,8 +49,7 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     scale([width/size, height/size, thickness]) {
         // Position patterns
         for(i=[[0,6],[size-7,6],[0,size-1]])
-            let(x=i[0],y=i[1])
-            translate([x, size-1-y, 0])
+            translate([i[0], size-1-i[1], 0])
             children(1);
         // Timing patterns
         for(x=[8:size-1-8])

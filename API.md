@@ -5,7 +5,7 @@
 ```scad
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
 ```
-Parameters:
+###### Parameters:
 |Name|Default|Description|
 |-|-|-|
 |`message`|*required*||
@@ -17,13 +17,40 @@ Parameters:
 |`mask_pattern`|`0`||
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
 ---
+#### qr\_custom - Generates a QR code using custom elements.
+```scad
+module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
+```
+###### Description:
+See qr() for parameter docs.
+
+Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, height = 1mm):
+
+- children(0): Module (black pixel)
+
+- children(1): Position pattern
+
+- children(2): Alignment pattern
+
+###### Parameters:
+|Name|Default|Description|
+|-|-|-|
+|`message`|*required*||
+|`error_correction`|`"M"`||
+|`width`|`100`||
+|`height`|`100`||
+|`thickness`|`1`||
+|`center`|`false`||
+|`mask_pattern`|`0`||
+|`encoding`|`"UTF-8"`||
+---
 ### Functions
 ---
 #### qr\_wifi - Generates a 'connect to wifi' message which can be input into qr().
 ```scad
 function qr_wifi(ssid, psk, auth="WPA", hidden=false)
 ```
-Parameters:
+###### Parameters:
 |Name|Default|Description|
 |-|-|-|
 |`ssid`|*required*|network name|
@@ -35,7 +62,7 @@ Parameters:
 ```scad
 function qr_phone_call(number)
 ```
-Parameters:
+###### Parameters:
 |Name|Default|Description|
 |-|-|-|
 |`number`|*required*||

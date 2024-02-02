@@ -120,6 +120,13 @@
             "qrcode_type": "text",
             "text": "lorem ipsum_7",
             "mask_pattern": "7"
+        },
+        "text_latin1_suppl": {
+            "qrcode_type": "text",
+            "text": "lörem ¡psüm©®×÷¶",
+            "encoding": "UTF-8",
+            "error_correction": "L",
+            "mask_pattern": "0"
         }
     }
 }

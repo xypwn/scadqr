@@ -31,6 +31,7 @@ tests = [
     ['mask_pattern_5', 'lorem ipsum_5'],
     ['mask_pattern_6', 'lorem ipsum_6'],
     ['mask_pattern_7', 'lorem ipsum_7'],
+    ['text_latin1_suppl', 'lörem ¡psüm©®×÷¶'],
 ]
 
 argparser = argparse.ArgumentParser(prog='test.py',description='Run ScadQR tests')
@@ -51,20 +52,23 @@ for i, test in enumerate(tests):
 
     print(f' {i}/{len(tests)}', end='\r')
 
+    openscad_args=[
+        args.openscad,
+        '-q',
+        '--autocenter',
+        '--viewall',
+        '--camera=0,0,0,0,0,0,200',
+        '--projection=ortho',
+        '-p', 'tests.json',
+        '-P', testname,
+        '--export-format', 'png',
+        '-o', '-',
+        'demo.scad',
+    ]
+    openscad_args_str = ' '.join([v for v in openscad_args])
     img = ''
     try:
-        img = subprocess.check_output([
-            args.openscad,
-            '-q',
-            '--autocenter',
-            '--viewall',
-            '--camera=0,0,0,0,0,0,200',
-            '-p', 'tests.json',
-            '-P', testname,
-            '--export-format', 'png',
-            '-o', '-',
-            'demo.scad',
-        ])
+        img = subprocess.check_output(openscad_args)
     except FileNotFoundError:
         exe_not_found('OpenSCAD', args.openscad, '-s')
         exit()
@@ -81,12 +85,14 @@ for i, test in enumerate(tests):
         exit()
     except subprocess.CalledProcessError as e:
         print(f'{col.RED}critical failure{col.RESET} test "{testname}": {e.cmd} returned with error {e.returncode}: "{e.output}"')
+        print(f'command: {openscad_args_str}')
         exit()
 
     if (res == expect):
         tests_passed += 1
     else:
         print(f'{col.RED}failed{col.RESET} test "{testname}": got "{res}", expected "{expect}"')
+        print(f'command: {openscad_args_str}')
 
 if tests_passed == len(tests):
     print(f'{col.BGREEN}PASS{col.RESET} {tests_passed}/{len(tests)} tests passed')

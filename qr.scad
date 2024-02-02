@@ -58,10 +58,12 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
         undef;
     assert(enc >= _qr_ENC_SJIS && enc <= _qr_ENC_UTF8, "encoding must be \"UTF-8\" or \"Shift_JIS\"");
 
-    ver = _qr_get_version(len(message), ec_lvl, enc);
+    message_bytes = _qr_str2bytes(message);
+
+    ver = _qr_get_version(len(message_bytes), ec_lvl, enc);
     size = _qr_version2size(ver);
 
-    bits = _qr_encode_message(message, ec_lvl, mask_pattern, ver, enc);
+    bits = _qr_encode_message(message_bytes, ec_lvl, mask_pattern, ver, enc);
 
     positions = _qr_data_bit_positions(size);
 
@@ -206,16 +208,16 @@ _qr_ENC_UTF8 = 1; // Unicode
 function _qr_version2size(ver) = 17+4*ver;
 function _qr_size2version(size) = (size-17)/4;
 
-function _qr_do_get_version(msg_len, ec_lvl, ver, encoding) =
+function _qr_do_get_version(msg_bytelen, ec_lvl, ver, encoding) =
     ver > 40 ? undef :
-    _qr_get_max_msg_len(ver, ec_lvl, encoding) >= msg_len ?
+    _qr_get_max_msg_bytelen(ver, ec_lvl, encoding) >= msg_bytelen ?
         ver :
-        _qr_do_get_version(msg_len, ec_lvl, ver+1, encoding);
+        _qr_do_get_version(msg_bytelen, ec_lvl, ver+1, encoding);
 
 // Picks the right QR code size (called version) for
 // the given message length and error correction level
-function _qr_get_version(msg_len, ec_lvl, encoding) =
-    _qr_do_get_version(msg_len, ec_lvl, 1, encoding);
+function _qr_get_version(msg_bytelen, ec_lvl, encoding) =
+    _qr_do_get_version(msg_bytelen, ec_lvl, 1, encoding);
 
 // Applies one of the 7 mask patterns via XOR
 function _qr_apply_mask_pattern(val, x, y, pat) =
@@ -240,7 +242,7 @@ function _qr_apply_mask_pattern(val, x, y, pat) =
 //
 // QR code message encoding
 //
-function _qr_get_max_msg_len(ver, ec_lvl, encoding) =
+function _qr_get_max_msg_bytelen(ver, ec_lvl, encoding) =
     let(maxbytes=_qr_ectab[ver-1][ec_lvl][0])
     let(msg_len_bytes=ver <= 9 ? 1 : 2)
     let(extra_bytes= // see _qr_data_codewords() for what these do
@@ -301,12 +303,11 @@ function _qr_pad_bytes(bytes, add) =
 // Encode msg as data codewords, including the header
 // and padding
 // Returns a byte stream
-function _qr_data_codewords(msg, ec_lvl, ver, encoding) =
-    let(msg_bytes=_qr_str2bytes(msg))
-    let(max_msg_bytes=_qr_get_max_msg_len(ver, ec_lvl, encoding))
+function _qr_data_codewords(msg_bytes, ec_lvl, ver, encoding) =
+    let(max_msg_bytes=_qr_get_max_msg_bytelen(ver, ec_lvl, encoding))
     let(msg_len_bits=_qr_bytes2bits(ver <= 9 ?
-        [ len(msg) ] : 
-        [ floor(len(msg)/_qr_pow2[8]), len(msg) ]))
+        [ len(msg_bytes) ] :
+        [ floor(len(msg_bytes)/_qr_pow2[8]), len(msg_bytes) ]))
     let(mode=
         encoding == _qr_ENC_SJIS ? [0,1,0,0] :
         encoding == _qr_ENC_UTF8 ? [0,1,1,1] :
@@ -325,7 +326,7 @@ function _qr_data_codewords(msg, ec_lvl, ver, encoding) =
             // the terminator may be omitted if the
             // message fits perfectly into the maximum
             // number of bytes
-            len(msg) == max_msg_bytes ?
+            len(msg_bytes) == max_msg_bytes ?
                 [] : [0,0,0,0,0,0,0,0]
         ) :
         undef)
@@ -338,7 +339,7 @@ function _qr_data_codewords(msg, ec_lvl, ver, encoding) =
         terminator
     ))
     let(pad_amt=max_msg_bytes
-        -len(msg)
+        -len(msg_bytes)
         -(len(terminator) == 8 ? 1 : 0))
     _qr_pad_bytes(_qr_bits2bytes(bits), pad_amt);
 
@@ -371,8 +372,8 @@ function _qr_ec_blocks(data_blocks, ec_lvl, ver) =
 
 // Get final encoded data including error
 // correction as bits
-function _qr_encode_message(msg, ec_lvl, mask_pattern, ver, encoding) =
-    let(data_blocks=_qr_data_blocks(_qr_data_codewords(msg, ec_lvl, ver, encoding), ec_lvl, ver))
+function _qr_encode_message(msg_bytes, ec_lvl, mask_pattern, ver, encoding) =
+    let(data_blocks=_qr_data_blocks(_qr_data_codewords(msg_bytes, ec_lvl, ver, encoding), ec_lvl, ver))
     let(data_cws=_qr_interleave_codewords(data_blocks))
     let(ec_blocks=_qr_ec_blocks(data_blocks, ec_lvl, ver))
     let(ec_cws=_qr_interleave_codewords(ec_blocks))
@@ -484,7 +485,7 @@ function _qr_next_module_position(prev, size, depth=0) =
 // Bit operation utils (not specific to QR)
 //
 _qr_pow2=[1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768];
-_qr_char_nums = [[0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[0,11],[0,12],[0,13],[0,14],[0,15],[0,16],[0,17],[0,18],[0,19],[0,20],[0,21],[0,22],[0,23],[0,24],[0,25],[0,26],[0,27],[0,28],[0,29],[0,30],[0,31],[" ",32],["!",33],["\"",34],["#",35],["$",36],["%",37],["&",38],["'",39],["(",40],[")",41],["*",42],["+",43],[",",44],["-",45],[".",46],["/",47],["0",48],["1",49],["2",50],["3",51],["4",52],["5",53],["6",54],["7",55],["8",56],["9",57],[":",58],[";",59],["<",60],["=",61],[">",62],["?",63],["@",64],["A",65],["B",66],["C",67],["D",68],["E",69],["F",70],["G",71],["H",72],["I",73],["J",74],["K",75],["L",76],["M",77],["N",78],["O",79],["P",80],["Q",81],["R",82],["S",83],["T",84],["U",85],["V",86],["W",87],["X",88],["Y",89],["Z",90],["[",91],["\\ ",92],["]",93],["^",94],["_",95],["`",96],["a",97],["b",98],["c",99],["d",100],["e",101],["f",102],["g",103],["h",104],["i",105],["j",106],["k",107],["l",108],["m",109],["n",110],["o",111],["p",112],["q",113],["r",114],["s",115],["t",116],["u",117],["v",118],["w",119],["x",120],["y",121],["z",122],["{",123],["|",124],["}",125],["~",126]];
+_qr_char_nums = [[0,0],["\x01",1],["\x02",2],["\x03",3],["\x04",4],["\x05",5],["\x06",6],["\x07",7],["\x08",8],["\x09",9],["\x0a",10],["\x0b",11],["\x0c",12],["\x0d",13],["\x0e",14],["\x0f",15],["\x10",16],["\x11",17],["\x12",18],["\x13",19],["\x14",20],["\x15",21],["\x16",22],["\x17",23],["\x18",24],["\x19",25],["\x1a",26],["\x1b",27],["\x1c",28],["\x1d",29],["\x1e",30],["\x1f",31],["\x20",32],["\x21",33],["\x22",34],["\x23",35],["\x24",36],["\x25",37],["\x26",38],["\x27",39],["\x28",40],["\x29",41],["\x2a",42],["\x2b",43],["\x2c",44],["\x2d",45],["\x2e",46],["\x2f",47],["\x30",48],["\x31",49],["\x32",50],["\x33",51],["\x34",52],["\x35",53],["\x36",54],["\x37",55],["\x38",56],["\x39",57],["\x3a",58],["\x3b",59],["\x3c",60],["\x3d",61],["\x3e",62],["\x3f",63],["\x40",64],["\x41",65],["\x42",66],["\x43",67],["\x44",68],["\x45",69],["\x46",70],["\x47",71],["\x48",72],["\x49",73],["\x4a",74],["\x4b",75],["\x4c",76],["\x4d",77],["\x4e",78],["\x4f",79],["\x50",80],["\x51",81],["\x52",82],["\x53",83],["\x54",84],["\x55",85],["\x56",86],["\x57",87],["\x58",88],["\x59",89],["\x5a",90],["\x5b",91],["\x5c",92],["\x5d",93],["\x5e",94],["\x5f",95],["\x60",96],["\x61",97],["\x62",98],["\x63",99],["\x64",100],["\x65",101],["\x66",102],["\x67",103],["\x68",104],["\x69",105],["\x6a",106],["\x6b",107],["\x6c",108],["\x6d",109],["\x6e",110],["\x6f",111],["\x70",112],["\x71",113],["\x72",114],["\x73",115],["\x74",116],["\x75",117],["\x76",118],["\x77",119],["\x78",120],["\x79",121],["\x7a",122],["\x7b",123],["\x7c",124],["\x7d",125],["\x7e",126],["\x7f",127],["\u0080",128],["\u0081",129],["\u0082",130],["\u0083",131],["\u0084",132],["\u0085",133],["\u0086",134],["\u0087",135],["\u0088",136],["\u0089",137],["\u008a",138],["\u008b",139],["\u008c",140],["\u008d",141],["\u008e",142],["\u008f",143],["\u0090",144],["\u0091",145],["\u0092",146],["\u0093",147],["\u0094",148],["\u0095",149],["\u0096",150],["\u0097",151],["\u0098",152],["\u0099",153],["\u009a",154],["\u009b",155],["\u009c",156],["\u009d",157],["\u009e",158],["\u009f",159],["\u00a0",160],["\u00a1",161],["\u00a2",162],["\u00a3",163],["\u00a4",164],["\u00a5",165],["\u00a6",166],["\u00a7",167],["\u00a8",168],["\u00a9",169],["\u00aa",170],["\u00ab",171],["\u00ac",172],["\u00ad",173],["\u00ae",174],["\u00af",175],["\u00b0",176],["\u00b1",177],["\u00b2",178],["\u00b3",179],["\u00b4",180],["\u00b5",181],["\u00b6",182],["\u00b7",183],["\u00b8",184],["\u00b9",185],["\u00ba",186],["\u00bb",187],["\u00bc",188],["\u00bd",189],["\u00be",190],["\u00bf",191],["\u00c0",192],["\u00c1",193],["\u00c2",194],["\u00c3",195],["\u00c4",196],["\u00c5",197],["\u00c6",198],["\u00c7",199],["\u00c8",200],["\u00c9",201],["\u00ca",202],["\u00cb",203],["\u00cc",204],["\u00cd",205],["\u00ce",206],["\u00cf",207],["\u00d0",208],["\u00d1",209],["\u00d2",210],["\u00d3",211],["\u00d4",212],["\u00d5",213],["\u00d6",214],["\u00d7",215],["\u00d8",216],["\u00d9",217],["\u00da",218],["\u00db",219],["\u00dc",220],["\u00dd",221],["\u00de",222],["\u00df",223],["\u00e0",224],["\u00e1",225],["\u00e2",226],["\u00e3",227],["\u00e4",228],["\u00e5",229],["\u00e6",230],["\u00e7",231],["\u00e8",232],["\u00e9",233],["\u00ea",234],["\u00eb",235],["\u00ec",236],["\u00ed",237],["\u00ee",238],["\u00ef",239],["\u00f0",240],["\u00f1",241],["\u00f2",242],["\u00f3",243],["\u00f4",244],["\u00f5",245],["\u00f6",246],["\u00f7",247],["\u00f8",248],["\u00f9",249],["\u00fa",250],["\u00fb",251],["\u00fc",252],["\u00fd",253],["\u00fe",254],["\u00ff",255]];
 
 function _qr_xor(a, b) = (a || b) && !(a && b);
 
@@ -505,8 +506,46 @@ function _qr_bits2byte(bits) =
     bits[6]*_qr_pow2[1] +
     bits[7]*_qr_pow2[0];
 
-// not using ord because it doesn't work on Thingiverse's customizer
+// Truncating right bitshift
+function _qr_rsh(x, n) =
+    floor(x/pow(2,n));
+
+function _qr_bittrunc(x, nbits) =
+    x%pow(2,nbits);
+
+function _qr_do_str2bytes(cps, idx=0, acc=[]) =
+    idx >= len(cps) ? acc :
+    cps[idx] <= 127 ?
+        _qr_do_str2bytes(cps, idx+1, concat(acc, cps[idx])) :
+    cps[idx] <= 2047 ?
+        _qr_do_str2bytes(cps, idx+1, concat(
+            acc,
+            128+64+_qr_rsh(cps[idx],6),
+            128+_qr_bittrunc(cps[idx],6)
+        )) :
+    cps[idx] <= 65535 ?
+        _qr_do_str2bytes(cps, idx+1, concat(
+            acc,
+            128+64+32+_qr_rsh(cps[idx],12),
+            128+_qr_bittrunc(_qr_rsh(cps[idx],6),6),
+            128+_qr_bittrunc(cps[idx],6)
+        )) :
+    cps[idx] <= 1114111 ?
+        _qr_do_str2bytes(cps, idx+1, concat(
+            acc,
+            128+64+32+16+_qr_rsh(cps[idx],18),
+            128+_qr_bittrunc(_qr_rsh(cps[idx],12),6),
+            128+_qr_bittrunc(_qr_rsh(cps[idx],6),6),
+            128+_qr_bittrunc(cps[idx],6)
+        )) :
+    undef;
+
+// UTF-8 encodes the result of str2codepts
 function _qr_str2bytes(s) =
+    _qr_do_str2bytes(_qr_str2codepts(s));
+
+// Not using ord because it doesn't work on Thingiverse's customizer
+function _qr_str2codepts(s) =
     [ for(i=search(s, _qr_char_nums, num_returns_per_match=0))
         i[0] ];
 

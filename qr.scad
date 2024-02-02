@@ -62,7 +62,7 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     size = _qr_version2size(ver);
 
     bits = _qr_encode_message(message, ec_lvl, mask_pattern, ver, enc);
-    
+
     positions = _qr_data_bit_positions(size);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0])
@@ -79,20 +79,22 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
             if (y%2 == 0)
             _qr_module_1(size, 6, y) children(0);
         // Alignment patterns
-        n_align_pats = _qr_n_alignment_patterns(ver);
-        align_pat_step = _qr_alignment_pattern_step(ver);
-        align_pat_last = size-1-6;
-        align_pat_coords = concat([6], [
-            for(i=[0:max(0, n_align_pats-2)]) align_pat_last-i*align_pat_step
-        ]);
-        for(y=align_pat_coords,x=align_pat_coords)
-            if (!(
-                (x == 6 && y == 6) ||
-                (x == 6 && y == align_pat_last) ||
-                (x == align_pat_last && y == 6)
-            ))
-            translate([x-2, size-1-y-2, 0])
-            children(2);
+        if (ver >= 2) {
+            n_pats = _qr_n_alignment_patterns(ver);
+            pat_step = _qr_alignment_pattern_step(ver);
+            pat_last = size-1-6;
+            pat_coords = concat([6], [
+                for(i=[0:max(0, n_pats-2)]) pat_last-i*pat_step
+            ]);
+            for(y=pat_coords,x=pat_coords)
+                if (!(
+                    (x == 6 && y == 6) ||
+                    (x == 6 && y == pat_last) ||
+                    (x == pat_last && y == 6)
+                ))
+                translate([x-2, size-1-y-2, 0])
+                children(2);
+        }
         // Version information
         if(ver >= 7) {
             verinf = _qr_verinf_bits(ver);

@@ -1,7 +1,7 @@
 # scadqr
 Effortlessly generate QR codes directly in OpenSCAD! No extra dependencies!
 
-### Example
+### Basic Example
 This code...
 ```scad
 include <qr.scad>
@@ -12,16 +12,56 @@ color("black") qr("https://github.com/xypwn/scadqr", center=true);
 
 ![demo QR code for https://github.com/xypwn/scadqr](demo.png)
 
+### Custom Components Example
+<details>
+<summary>Click to expand</summary>
+
+You can specify custom models for each module ("pixel"), position pattern and alignment pattern.
+To do this, you can use the [`qr_custom()`](API.md#qr_custom---generates-a-qr-code-using-custom-elements) function. 
+See the [API docs](API.md#qr_custom---generates-a-qr-code-using-custom-elements) for all the details.
+
+The following shows an example using round components.
+
+```scad
+include <qr.scad>
+
+color("black") qr_custom("https://github.com/xypwn/scadqr") {
+    // Module
+    translate([0.5, 0.5, 0])
+        scale([0.7, 0.7, 1])
+        cylinder(h=1, d=1, center=false, $fn=16);
+    // Position pattern
+    translate([3.5, 3.5, 0]) linear_extrude(1) union() {
+        difference() {
+            circle(d=7, $fn=32);
+            circle(d=5.2, $fn=32);
+        }
+        circle(d=3, $fn=24);
+    }
+    // Alignment pattern
+    translate([2.5, 2.5, 0]) linear_extrude(1) union() {
+        difference() {
+            circle(d=4.3, $fn=32);
+            circle(d=3, $fn=32);
+        }
+        circle(d=1, $fn=16);
+    }
+}
+```
+
+![demo QR code for https://github.com/xypwn/scadqr with round components](demo-custom.png)
+</details>
+
 ### API documentation
 [API.md](API.md)
 
 ### Download
-[qr.scad](https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad) (34kB)
+[qr.scad](qr.scad) (34kB)
 
 ### Using the library in your OpenSCAD project
 You can either
-- [download](#downloads) the library file directly into your project folder and `include<qr.scad>` it in your main .scad file
-- go to [downloads](#downloads) and *left click* the file instead of saving it, then select everything and paste it at the end of your main .scad file; you will need to do this with Thingiverse as they only accept using a single file with Customizer
+- [download](#download) the library file directly into your project folder and `include<qr.scad>` it in your main .scad file
+- go to [downloads](#download) and *left click* the file instead of saving it, then copy the code in at the end of your main .scad file; you will need to do this with Thingiverse as they only accept using a single file with Customizer
 - or fully [install it as a user-defined library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) (I don't recommend this due to the hassle with redistribution and loss of flexibility)
 
 ---

@@ -56,7 +56,7 @@ color("black") qr_custom("https://github.com/xypwn/scadqr") {
 [API.md](API.md)
 
 ### Download
-[qr.scad](qr.scad) (34kB)
+[qr.scad](qr.scad) (37kB)
 
 ### Using the library in your OpenSCAD project
 You can either

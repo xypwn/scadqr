@@ -544,8 +544,10 @@ function _qr_do_str2bytes(cps, idx=0, acc=[]) =
 function _qr_str2bytes(s) =
     _qr_do_str2bytes(_qr_str2codepts(s));
 
-// Not using ord because it doesn't work on Thingiverse's customizer
+// ord got added in ver 2019.05 (missing in Thingiverse Customizer)
 function _qr_str2codepts(s) =
+    version_num() >= 20190500 ?
+        [ for(i=s) ord(i) ] :
     [ for(i=search(s, _qr_char_nums, num_returns_per_match=0))
         i[0] ];
 

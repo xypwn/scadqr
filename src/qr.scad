@@ -231,27 +231,28 @@ function get_max_msg_bytelen(ver, ec_lvl, encoding) =
         undef)
     maxbytes - msg_len_bytes - extra_bytes;
 
-// Performs polynomial long division of data_cws by gp
-function do_ec_codewords(gp, data_cws, steps) =
-    let(lt=gf256_log[data_cws[0]])
-    let(p=[ for(i=[0:len(gp)-1]) gp[i] == -1 ? 0 : gf256_exp[(gp[i] + lt) % 255] ])
-    let(q=[ for(i=[1:len(p)-1]) xor_byte(data_cws[i], p[i]) ])
-    steps > 1 ?
-        do_ec_codewords(
-            [ for(i=[0:len(gp)-2]) gp[i] ],
-            q,
-            steps-1
-        ) :
-        q;
+// Performs a gf2^8 finite field multiplication
+function gf256_mul(a, b) =
+    a == 0 || b == 0 ? 0 :
+    gf256_exp[
+        (gf256_log[a] + gf256_log[b]) % 255
+    ];
+
+// Performs gf2^8 polynomial long division of data_cws by gp
+function do_ec_codewords(n, data_cws, gp, res, i) =
+    i >= len(data_cws) ?
+        res :
+    let (lt = xor_byte(data_cws[i], res[0]))
+    let (res = [ for(i=[1:len(res)-1]) res[i] ])
+    let (res = concat(res, [0]))
+    let (res = [ for(i=[0:n-1])
+        xor_byte(res[i], gf256_mul(gp[i], lt))
+    ])
+    do_ec_codewords(n, data_cws, gp, res, i+1);
 
 // Generates n error correction codewords for data_cws
 function ec_codewords(n, data_cws) =
-    let(gp=generator_polynomials[n])
-    do_ec_codewords(
-        concat(gp, [ for(i=[0:len(data_cws)-2]) -1 ]), // -1 means the term doesn't exist in this case
-        concat(data_cws, [ for(i=[0:n-1]) 0 ]),
-        len(data_cws)
-    );
+    do_ec_codewords(n, data_cws, generator_polynomials[n], [ for(i=[0:n]) 0 ], 0);
 
 // Error correction patterns converted to decimal
 ec_pats = [

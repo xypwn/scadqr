@@ -1,5 +1,5 @@
 // QR code purpose (configure the section depending on the type you choose here)
-qrcode_type = "text"; // [text:"Text/URL", wifi:"Wi-Fi", phone:"Phone Number"]
+qrcode_type = "text"; // [text:"Text/URL", wifi:"Wi-Fi", phone:"Phone Number", vcard:"Contact Info (VCard)"]
 
 /* [Text/URL] */
 // Content of the QR code
@@ -18,6 +18,38 @@ hidden = 0; // [ 0:false, 1:true ]
 /* [Phone] */
 // Phone number
 phone = "0123456789";
+
+/* [Contact Info] */
+// Last name
+vc_lastname = "Doe";
+// First name
+vc_firstname = "John";
+// Middle names
+vc_middlenames = "";
+// Honorary prefixes
+vc_nameprefixes = "Dr.";
+// Honorary suffixes
+vc_namesuffixes = "";
+// Full name (blank for auto)
+vc_customfullname = "";
+// Email address
+vc_email = "john@johndoe.example.com";
+// URL (e.g. website)
+vc_url = "https://johndoe.example.com";
+// Phone number
+vc_phone = "0123456789";
+// Street address
+vc_address = "123 Example St.";
+// Extended address (e.g. apartment or suite number)
+vc_ext_address = "";
+// City
+vc_city = "New York";
+// Region (e.g. state or province)
+vc_region = "NY";
+// Postal code
+vc_postalcode = "10002";
+// Country
+vc_country = "United States";
 
 /* [Dimensions] */
 // Width of the QR code
@@ -42,6 +74,7 @@ include <qr.scad>
 content =
     qrcode_type == "wifi" ? qr_wifi(ssid, psk, auth, hidden) :
     qrcode_type == "phone" ? qr_phone_call(phone) :
+    qrcode_type == "vcard" ? qr_vcard(vc_lastname, vc_firstname, vc_middlenames, vc_nameprefixes, vc_namesuffixes, vc_customfullname, vc_email, vc_url, vc_phone, vc_address, vc_ext_address, vc_city, vc_region, vc_postalcode, vc_country) :
     text;
 
 color("black")

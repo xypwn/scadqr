@@ -76,3 +76,10 @@ function bits2bytes(bits) = [ for(i=[0:ceil(len(bits)/8)-1]) bits2byte([
         let(bitidx=8*i + j)
         bitidx < len(bits) ? bits[bitidx] : 0
     ]) ];
+
+function do_strjoin(strs, delim, idx=0, acc="") =
+	idx >= len(strs) ? acc :
+	do_strjoin(strs, delim, idx+1, str(acc, acc == "" ? "" : delim, strs[idx]));
+
+function strjoin(strs, delim="") =
+	do_strjoin(strs, delim);

@@ -29,6 +29,7 @@
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") 
     qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding) {
@@ -149,6 +150,30 @@ function qr_wifi(ssid, psk, auth="WPA", hidden=false) =
 // Generates a 'make a phone call' message which can be input into qr().
 function qr_phone_call(number) =
     str("TEL:", number);
+
+// Generates a VCard containing contact info which can be input into qr().
+// Only a basic subset of VCard is implemented.
+function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuffixes="", customfullname="", email="", url="", phone="", address="", ext_address="", city="", region="", postalcode="", country="") =
+    let (fullname = customfullname ? customfullname :
+        _qr_strjoin(
+            [ for (s=[nameprefixes, firstname, middlenames, lastname, namesuffixes]) if (s != "") s ],
+            delim=" "
+        ))
+    str(
+        "BEGIN:VCARD\n",
+        "VERSION:3.0\n",
+        "N:",lastname,";",firstname,";",middlenames,";",nameprefixes,";",namesuffixes,"\n",
+        "FN:",fullname,"\n",
+        email ?
+            str("EMAIL;type=PREF,INTERNET:",email,"\n") : "",
+        url ?
+            str("URL:",url,"\n") : "",
+        phone ?
+            str("TEL:",phone,"\n") : "",
+        (address || ext_address || city || region || postalcode || country) ?
+            str("ADR;TYPE=HOME:",";",ext_address,";",address,";",city,";",region,";",postalcode,";",country,"\n") : "",
+        "END:VCARD\n"
+    );
 
 //@PRIVATE
 
@@ -560,7 +585,13 @@ function _qr_bits2bytes(bits) = [ for(i=[0:ceil(len(bits)/8)-1]) _qr_bits2byte([
         let(bitidx=8*i + j)
         bitidx < len(bits) ? bits[bitidx] : 0
     ]) ];
-// Galois field 256 exponentiation table
+
+function _qr_do_strjoin(strs, delim, idx=0, acc="") =
+	idx >= len(strs) ? acc :
+	_qr_do_strjoin(strs, delim, idx+1, str(acc, acc == "" ? "" : delim, strs[idx]));
+
+function _qr_strjoin(strs, delim="") =
+	_qr_do_strjoin(strs, delim);// Galois field 256 exponentiation table
 _qr_gf256_exp = [
     1,2,4,8,16,32,64,128,29,58,116,232,205,135,19,38,
     76,152,45,90,180,117,234,201,143,3,6,12,24,48,96,192,

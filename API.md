@@ -14,7 +14,7 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 |`height`|`100`||
 |`thickness`|`1`||
 |`center`|`false`||
-|`mask_pattern`|`0`||
+|`mask_pattern`|`0`|range: 0-7|
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
 ---
 #### qr\_custom - Generates a QR code using custom elements.
@@ -66,4 +66,30 @@ function qr_phone_call(number)
 |Name|Default|Description|
 |-|-|-|
 |`number`|*required*||
+---
+#### qr\_vcard - Generates a VCard containing contact info which can be input into qr().
+```scad
+function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuffixes="", customfullname="", email="", url="", phone="", address="", ext_address="", city="", region="", postalcode="", country="")
+```
+###### Description:
+Only a basic subset of VCard is implemented.
+
+###### Parameters:
+|Name|Default|Description|
+|-|-|-|
+|`lastname`|*required*||
+|`firstname`|*required*||
+|`middlenames`|`""`||
+|`nameprefixes`|`""`||
+|`namesuffixes`|`""`||
+|`customfullname`|`""`||
+|`email`|`""`||
+|`url`|`""`||
+|`phone`|`""`||
+|`address`|`""`||
+|`ext_address`|`""`||
+|`city`|`""`||
+|`region`|`""`||
+|`postalcode`|`""`||
+|`country`|`""`||
 ---

@@ -19,11 +19,13 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 }
 
 // Generates a QR code using custom elements.
-// See qr() for parameter docs.
 // Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, height = 1mm):
-// - children(0): Module (black pixel)
-// - children(1): Position pattern
-// - children(2): Alignment pattern
+// - `children(0)`: Module (black pixel)
+// - `children(1)`: Position pattern
+// - `children(2)`: Alignment pattern
+// error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// mask_pattern: range: 0-7
+// encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
     ec_lvl =
         error_correction == "L" ? EC_L :
@@ -133,6 +135,22 @@ function qr_phone_call(number) =
 
 // Generates a VCard containing contact info which can be input into qr().
 // Only a basic subset of VCard is implemented.
+// If applicable, multiple entries must be separated by commas (e.g. middlenames, nameprefixes...).
+// lastname: last name
+// firstname: first name
+// middlenames: additional first names
+// nameprefixes: honorific prefixes
+// namesuffixes: honorific suffixes
+// customfullname: full name, leave blank to automatically generate
+// email: email address
+// url: website or other URL
+// phone: phone number
+// address: street address
+// ext_address: extended address (e.g. apartment or suite number)
+// city: city name
+// region: region (e.g. state or province)
+// postalcode: postal code
+// country: full country name
 function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuffixes="", customfullname="", email="", url="", phone="", address="", ext_address="", city="", region="", postalcode="", country="") =
     let (fullname = customfullname ? customfullname :
         strjoin(

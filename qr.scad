@@ -31,6 +31,8 @@
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
+//qr("2uiaeeuiaeuiaeuiaeuiaeuiaeuvievuleuiaevcvlauvcleuvile");
+
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") 
     qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding) {
         _qr_default_module();
@@ -47,6 +49,8 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
+
+    $3D=thickness;
     ec_lvl =
         error_correction == "L" ? _qr_EC_L :
         error_correction == "M" ? _qr_EC_M :
@@ -71,7 +75,7 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     positions = _qr_data_bit_positions(size);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0])
-    scale([width/size, height/size, thickness]) {
+    scale([width/size, height/size, thickness?thickness:1]) {
         // Position patterns
         for(i=[[0,6],[size-7,6],[0,size-1]])
             translate([i[0], size-1-i[1], 0])
@@ -199,10 +203,13 @@ function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuff
 // QR code helper modules
 //
 module _qr_default_module() {
-    cube([1, 1, 1]);
+    if($3D)cube([1, 1, 1]);
+    else square(1);
 }
 
-module _qr_default_position_pattern() linear_extrude(1) union() {
+module _qr_default_position_pattern() 
+
+if($3D)linear_extrude(1) union() {
     difference() {
         square(7);
         translate([1, 1, 0])
@@ -210,9 +217,29 @@ module _qr_default_position_pattern() linear_extrude(1) union() {
     }
     translate([2, 2, 0])
         square(3);
-}
+} else union() {
+    difference() {
+        square(7);
+        translate([1, 1, 0])
+            square(5);
+    }
+    translate([2, 2, 0])
+        square(3);
+} 
 
-module _qr_default_alignment_pattern() linear_extrude(1) union() {
+module _qr_default_alignment_pattern() 
+
+if($3D)linear_extrude(1)
+ union() {
+    difference() {
+        square(5);
+        translate([1, 1, 0])
+            square(3);
+    }
+    translate([2, 2, 0])
+        square(1);
+}
+else union() {
     difference() {
         square(5);
         translate([1, 1, 0])

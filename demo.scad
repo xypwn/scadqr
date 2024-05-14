@@ -56,8 +56,8 @@ vc_country = "United States";
 width = 100; // [1:1000]
 // Height of the QR code
 height = 100; // [1:1000]
-// Thickness of the QR code
-thickness = 5; // [1:50]
+// Thickness of the QR code or 0 for 2D
+thickness = 5; // [0:20]
 // Place the QR code in the center
 center = 0; // [0:false, 1:true]
 

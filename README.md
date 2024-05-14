@@ -27,11 +27,11 @@ include <qr.scad>
 
 color("black") qr_custom("https://github.com/xypwn/scadqr") {
     // Module
-    translate([0.5, 0.5, 0])
-        scale([0.7, 0.7, 1])
-        cylinder(h=1, d=1, center=false, $fn=16);
+    translate([0.5, 0.5])
+        scale([0.8, 0.8])
+        circle(d=1, $fn=16);
     // Position pattern
-    translate([3.5, 3.5, 0]) linear_extrude(1) union() {
+    translate([3.5, 3.5]) union() {
         difference() {
             circle(d=7, $fn=32);
             circle(d=5.2, $fn=32);
@@ -39,7 +39,7 @@ color("black") qr_custom("https://github.com/xypwn/scadqr") {
         circle(d=3, $fn=24);
     }
     // Alignment pattern
-    translate([2.5, 2.5, 0]) linear_extrude(1) union() {
+    translate([2.5, 2.5]) union() {
         difference() {
             circle(d=4.3, $fn=32);
             circle(d=3, $fn=32);

@@ -12,7 +12,7 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 |`error_correction`|`"M"`|options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)|
 |`width`|`100`||
 |`height`|`100`||
-|`thickness`|`1`||
+|`thickness`|`1`|thickness or 0 for 2D|
 |`center`|`false`||
 |`mask_pattern`|`0`|range: 0-7|
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
@@ -22,7 +22,7 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
 ```
 ###### Description:
-Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, height = 1mm):
+Child elements (2D, origin: [0,0], must extend into positive XY, 1 module = 1mm):
 
 - `children(0)`: Module (black pixel)
 
@@ -37,7 +37,7 @@ Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, 
 |`error_correction`|`"M"`|options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)|
 |`width`|`100`||
 |`height`|`100`||
-|`thickness`|`1`||
+|`thickness`|`1`|thickness or 0 for 2D|
 |`center`|`false`||
 |`mask_pattern`|`0`|range: 0-7|
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|

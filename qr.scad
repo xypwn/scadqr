@@ -32,6 +32,7 @@
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// thickness: thickness or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") 
@@ -42,11 +43,12 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 }
 
 // Generates a QR code using custom elements.
-// Child elements (origin: [0,0,0], must extend into positive XYZ, 1 module = 1mm, height = 1mm):
+// Child elements (2D, origin: [0,0], must extend into positive XY, 1 module = 1mm):
 // - `children(0)`: Module (black pixel)
 // - `children(1)`: Position pattern
 // - `children(2)`: Alignment pattern
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// thickness: thickness or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
@@ -74,7 +76,8 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     positions = _qr_data_bit_positions(size);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0])
-    scale([width/size, height/size, thickness]) {
+    _qr_extrude_or_2d(thickness)
+    scale([width/size, height/size]) {
         // Position patterns
         for(i=[[0,6],[size-7,6],[0,size-1]])
             translate([i[0], size-1-i[1], 0])
@@ -202,26 +205,26 @@ function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuff
 // QR code helper modules
 //
 module _qr_default_module() {
-    cube([1, 1, 1]);
+    square([1, 1]);
 }
 
-module _qr_default_position_pattern() linear_extrude(1) union() {
+module _qr_default_position_pattern() union() {
     difference() {
         square(7);
-        translate([1, 1, 0])
+        translate([1, 1])
             square(5);
     }
-    translate([2, 2, 0])
+    translate([2, 2])
         square(3);
 }
 
-module _qr_default_alignment_pattern() linear_extrude(1) union() {
+module _qr_default_alignment_pattern() union() {
     difference() {
         square(5);
-        translate([1, 1, 0])
+        translate([1, 1])
             square(3);
     }
-    translate([2, 2, 0])
+    translate([2, 2])
         square(1);
 }
 
@@ -230,6 +233,16 @@ module _qr_module_1(size, x, y) {
     translate([x-epsilon, size-1-y-epsilon, 0])
         scale([1+2*epsilon, 1+2*epsilon, 1])
         children(0);
+}
+
+// Applies linear_extrude(thickness) only if thickness > 0
+module _qr_extrude_or_2d(thickness) {
+    if (thickness == 0) {
+        children(0);
+    } else {
+        linear_extrude(thickness)
+            children(0);
+    }
 }
 
 function _qr_data_bit_positions(size, index=0, pos=undef, acc=[]) =

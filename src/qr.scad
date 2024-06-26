@@ -176,7 +176,47 @@ function qr_vcard(lastname, firstname, middlenames="", nameprefixes="", namesuff
         "END:VCARD\n"
     );
 
+// Generates a VCalendar event which can be input into qr().
+// summary: short event description
+// description: event description
+// location: location name
+// start_datetime: start date time UTC string, can be generated using qr_vevent_datetime()
+// end_datetime: end date time UTC string, can be generated using qr_vevent_datetime()
+function qr_vevent(summary="", description="", location="", start_datetime, end_datetime) =
+    str(
+        "BEGIN:VCALENDAR\n",
+        "VERSION:2.0\n",
+        "PRODID:-//hacksw/handcal//NONSGML v1.0//EN\n",
+        "BEGIN:VEVENT\n",
+        summary ?
+            str("SUMMARY:", summary, "\n") : "",
+        description ?
+            str("DESCRIPTION:", description, "\n") : "",
+        location ?
+            str("LOCATION:", location, "\n") : "",
+        "DTSTAMP:", start_datetime, "\n",
+        "DTSTART:", start_datetime, "\n",
+        "DTEND:", end_datetime, "\n",
+        "END:VEVENT\n",
+        "END:VCALENDAR\n"
+    );
+
+// Generates a UTC datetime string to be input into qr_vevent.
+function qr_vevent_datetime(year, month, day, hour, minute, second) =
+    str(
+        padstr(str(year), "0", 4), padstr(str(month), "0", 2), padstr(str(day), "0", 2), "T",
+        padstr(str(hour), "0", 2), padstr(str(minute), "0", 2), padstr(str(second), "0", 2), "Z"
+    );
+
 //@PRIVATE
+
+//
+// Misc helper functions
+//
+function padstr(s, ch, pad, acc="") =
+    len(acc) >= pad-len(s) ?
+    str(acc, s) :
+    padstr(s, ch, pad, str(acc, ch));
 
 //
 // QR code helper modules

@@ -93,3 +93,30 @@ If applicable, multiple entries must be separated by commas (e.g. middlenames, n
 |`postalcode`|`""`|postal code|
 |`country`|`""`|full country name|
 ---
+#### qr\_vevent - Generates a VCalendar event which can be input into qr().
+```scad
+function qr_vevent(summary="", description="", location="", start_datetime, end_datetime)
+```
+###### Parameters:
+|Name|Default|Description|
+|-|-|-|
+|`summary`|`""`|short event description|
+|`description`|`""`|event description|
+|`location`|`""`|location name|
+|`start_datetime`|*required*|start date time UTC string, can be generated using qr\_vevent\_datetime()|
+|`end_datetime`|*required*|end date time UTC string, can be generated using qr\_vevent\_datetime()|
+---
+#### qr\_vevent\_datetime - Generates a UTC datetime string to be input into qr_vevent.
+```scad
+function qr_vevent_datetime(year, month, day, hour, minute, second)
+```
+###### Parameters:
+|Name|Default|Description|
+|-|-|-|
+|`year`|*required*||
+|`month`|*required*||
+|`day`|*required*||
+|`hour`|*required*||
+|`minute`|*required*||
+|`second`|*required*||
+---

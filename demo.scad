@@ -1,5 +1,5 @@
 // QR code purpose (configure the section depending on the type you choose here)
-qrcode_type = "text"; // [text:"Text/URL", wifi:"Wi-Fi", phone:"Phone Number", vcard:"Contact Info (VCard)"]
+qrcode_type = "text"; // [text:"Text/URL", wifi:"Wi-Fi", phone:"Phone Number", vcard:"Contact Info (VCard)", vevent:"Event Info (VEvent)"]
 
 /* [Text/URL] */
 // Content of the QR code
@@ -51,6 +51,35 @@ vc_postalcode = "10002";
 // Country
 vc_country = "United States";
 
+/* [Event Info] */
+// Short event description
+ve_summary = "Summary";
+// Event description
+ve_description = "Description of the event";
+// Location
+ve_location = "John's house";
+// Start year (UTC)
+ve_start_year = 2024; // [2000:2100]
+// Start month (UTC)
+ve_start_month = 6; // [1:12]
+// Start day (UTC)
+ve_start_day = 16; // [1:31]
+// Start hour (UTC)
+ve_start_hour = 18; // [0:23]
+// Start minute (UTC)
+ve_start_minute = 30; // [0:59]
+// End year (UTC)
+ve_end_year = 2024; // [2000:2100]
+// End month (UTC)
+ve_end_month = 6; // [1:12]
+// End day (UTC)
+ve_end_day = 16; // [1:31]
+// End hour (UTC)
+ve_end_hour = 20; // [0:23]
+// End minute (UTC)
+ve_end_minute = 30; // [0:59]
+
+
 /* [Dimensions] */
 // Width of the QR code
 width = 100; // [1:1000]
@@ -75,7 +104,12 @@ content =
     qrcode_type == "wifi" ? qr_wifi(ssid, psk, auth, hidden) :
     qrcode_type == "phone" ? qr_phone_call(phone) :
     qrcode_type == "vcard" ? qr_vcard(vc_lastname, vc_firstname, vc_middlenames, vc_nameprefixes, vc_namesuffixes, vc_customfullname, vc_email, vc_url, vc_phone, vc_address, vc_ext_address, vc_city, vc_region, vc_postalcode, vc_country) :
+    qrcode_type == "vevent" ? qr_vevent(
+        ve_summary, ve_description, ve_location,
+        qr_vevent_datetime(ve_start_year, ve_start_month, ve_start_day, ve_start_hour, ve_start_minute, 0),
+        qr_vevent_datetime(ve_end_year, ve_end_month, ve_end_day, ve_end_hour, ve_end_minute, 0)
+    ) :
     text;
 
 color("black")
-qr(content, error_correction, width, height, thickness, center, mask_pattern, encoding);
+    qr(content, error_correction, width, height, thickness, center, mask_pattern, encoding);

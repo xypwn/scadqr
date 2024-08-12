@@ -269,7 +269,7 @@ module _qr_default_alignment_pattern() union() {
 }
 
 module _qr_module_1(size, x, y) {
-    epsilon=0.00001; // ensures adjacent modules fuse together when rendering
+    epsilon=0.0001; // ensures adjacent modules fuse together when rendering
     translate([x-epsilon, size-1-y-epsilon, 0])
         scale([1+2*epsilon, 1+2*epsilon, 1])
         children(0);

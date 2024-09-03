@@ -4,7 +4,7 @@ Effortlessly generate QR codes directly in OpenSCAD! No extra dependencies!
 ### Basic Example
 This code...
 ```scad
-include <qr.scad>
+include <qr.scad> // omit this if you pasted the library's source code at the end of the file
 
 color("black") qr("https://github.com/xypwn/scadqr", center=true);
 ```
@@ -23,7 +23,7 @@ See the [API docs](API.md#qr_custom---generates-a-qr-code-using-custom-elements)
 The following shows an example using round components.
 
 ```scad
-include <qr.scad>
+include <qr.scad> // omit this if you pasted the library's source code at the end of the file
 
 color("black") qr_custom("https://github.com/xypwn/scadqr") {
     // Module
@@ -55,16 +55,28 @@ color("black") qr_custom("https://github.com/xypwn/scadqr") {
 ### API documentation
 [API.md](API.md)
 
-### Download
-[qr.scad](https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad) (36kB)
-
 ### Using the library in your OpenSCAD project
-You can either
-- [download](#download) the library file directly into your project folder and `include<qr.scad>` it in your main .scad file
-- go to [downloads](#download) and *left click* the file instead of saving it, then copy the code in at the end of your main .scad file; you will need to do this with Thingiverse as they only accept using a single file with Customizer
-- or fully [install it as a user-defined library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) (I don't recommend this due to the hassle with redistribution and loss of flexibility)
+#### Simple method (pasting code at end of file) [recommended]
+Open [qr.scad](qr.scad) and click the "copy raw file" button...
+!["copy" button on the top right of the source code viewer for qr.scad](instruction-copy-from-github.png)
+...then paste the copied source code at the end of your project file.
 
----
+Do **NOT** add the `include <qr.scad>` line if you are using this method!
+
+This method is the only one that works with Thingiverse's Customizer.
+
+If you're working with multiple source code files, I recommend using one of the other methods.
+
+#### Including as local library
+[download](#raw-download) the library file directly into your project folder and add an `include <qr.scad>` to the beginning of your file
+
+#### Installing as global library
+Follow [these](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) instructions.
+
+You will also have to add an `include <qr.scad>` to the beginning of your file
+
+### Raw download
+[qr.scad](https://raw.githubusercontent.com/xypwn/scadqr/main/qr.scad) (Right-Click -> Save target as)
 
 ### Notes on using with Thingiverse's Customizer
 This library fully supports Thingiverse's Customizer, but you will need to directly append the library code to your SCAD file, as Customizer only supports a single file.

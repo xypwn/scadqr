@@ -52,6 +52,22 @@ color("black") qr_custom("https://github.com/xypwn/scadqr") {
 ![demo QR code for https://github.com/xypwn/scadqr with round components](demo-custom.png)
 </details>
 
+### Wi-Fi Example
+<details>
+<summary>Click to expand</summary>
+
+You can generate special "messages" using the `qr_wifi`, `qr_phone_call`, `qr_vcard` etc. functions. The resulting message can be passed into the `qr` or `qr_custom` module as seen in the example below.
+
+For more details, see [API.md](API.md#qr_wifi---generates-a-connect-to-wifi-message-which-can-be-input-into-qr).
+
+```scad
+include <qr.scad> // omit this if you pasted the library's source code at the end of the file
+
+color("black") qr(qr_wifi("MyNetworkName", "supersecretpassword1337"), center=true);
+```
+
+</details>
+
 ### API documentation
 [API.md](API.md)
 

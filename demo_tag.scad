@@ -1,7 +1,7 @@
 // This demo shows how to use the QR code generator to generate a tag (ie. for a dog collar)
 // with size derived from the amount of data to encode.
 
-include <QR.scad>;
+include <qr.scad>;
 
 /* [Print options] */
 // The minimum printable module ("pixel") size, based on the printer's resolution

@@ -44,9 +44,20 @@ Child elements (2D, origin: [0,0], must extend into positive XY, 1 module = 1mm)
 ---
 ### Functions
 ---
-#### qr\_size - Returns the size of a QR code (in modules/squares) for a given messagem error correction level and encoding.
+#### qr\_size - Returns the length of one side of the QR code (in modules/squares).
 ```scad
 function qr_size(message, error_correction="M", encoding="UTF-8")
+```
+###### Parameters:
+|Name|Default|Description|
+|-|-|-|
+|`message`|*required*||
+|`error_correction`|`"M"`|options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)|
+|`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
+---
+#### qr\_version - Returns the version of a QR code (1 <= version <= 40; version dictates the size).
+```scad
+function qr_version(message, error_correction="M", encoding="UTF-8")
 ```
 ###### Parameters:
 |Name|Default|Description|

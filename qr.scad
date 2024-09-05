@@ -146,10 +146,16 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     }
 }
 
-// Returns the size of a QR code (in modules/squares) for a given messagem error correction level and encoding.
+// Returns the length of one side of the QR code (in modules/squares).
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
 function qr_size(message, error_correction="M", encoding="UTF-8") = 
+    _qr_version2size(qr_version(message, error_correction, encoding));
+
+// Returns the version of a QR code (1 <= version <= 40; version dictates the size).
+// error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
+function qr_version(message, error_correction="M", encoding="UTF-8") = 
     let(ec_lvl =
         error_correction == "L" ? _qr_EC_L :
         error_correction == "M" ? _qr_EC_M :
@@ -162,8 +168,7 @@ function qr_size(message, error_correction="M", encoding="UTF-8") =
         encoding == "UTF-8" ? _qr_ENC_UTF8 :
         undef)
     assert(enc >= _qr_ENC_SJIS && enc <= _qr_ENC_UTF8, "encoding must be \"UTF-8\" or \"Shift_JIS\"")
-    _qr_version2size(_qr_get_version(len(_qr_str2bytes(message)), ec_lvl, enc));
-
+    _qr_get_version(_qr_str_num_bytes(message), ec_lvl, enc);
 
 // Generates a 'connect to wifi' message which can be input into qr().
 // ssid: network name
@@ -667,6 +672,22 @@ function _qr_do_str2bytes(cps, idx=0, acc=[]) =
 // UTF-8 encodes the result of str2codepts
 function _qr_str2bytes(s) =
     _qr_do_str2bytes(_qr_str2codepts(s));
+
+function _qr_do_str_num_bytes(cps, idx=0, acc=0) =
+    idx >= len(cps) ? acc :
+    cps[idx] <= 127 ?
+        _qr_do_str_num_bytes(cps, idx+1, acc+1) :
+    cps[idx] <= 2047 ?
+        _qr_do_str_num_bytes(cps, idx+1, acc+2) :
+    cps[idx] <= 65535 ?
+        _qr_do_str_num_bytes(cps, idx+1, acc+3) :
+    cps[idx] <= 1114111 ?
+        _qr_do_str_num_bytes(cps, idx+1, acc+3) :
+    undef;
+
+// Length of string in UTF-8 encoding
+function _qr_str_num_bytes(s) =
+    _qr_do_str_num_bytes(_qr_str2codepts(s));
 
 // ord got added in ver 2019.05 (missing in Thingiverse Customizer)
 function _qr_str2codepts(s) =

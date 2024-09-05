@@ -61,6 +61,22 @@ function do_str2bytes(cps, idx=0, acc=[]) =
 function str2bytes(s) =
     do_str2bytes(str2codepts(s));
 
+function do_str_num_bytes(cps, idx=0, acc=0) =
+    idx >= len(cps) ? acc :
+    cps[idx] <= 127 ?
+        do_str_num_bytes(cps, idx+1, acc+1) :
+    cps[idx] <= 2047 ?
+        do_str_num_bytes(cps, idx+1, acc+2) :
+    cps[idx] <= 65535 ?
+        do_str_num_bytes(cps, idx+1, acc+3) :
+    cps[idx] <= 1114111 ?
+        do_str_num_bytes(cps, idx+1, acc+3) :
+    undef;
+
+// Length of string in UTF-8 encoding
+function str_num_bytes(s) =
+    do_str_num_bytes(str2codepts(s));
+
 // ord got added in ver 2019.05 (missing in Thingiverse Customizer)
 function str2codepts(s) =
     version_num() >= 20190500 ?

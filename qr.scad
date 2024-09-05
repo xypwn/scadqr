@@ -146,6 +146,25 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     }
 }
 
+// Returns the size of a QR code (in modules/squares) for a given messagem error correction level and encoding.
+// error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
+// encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
+function qr_size(message, error_correction="M", encoding="UTF-8") = 
+    let(ec_lvl =
+        error_correction == "L" ? _qr_EC_L :
+        error_correction == "M" ? _qr_EC_M :
+        error_correction == "Q" ? _qr_EC_Q :
+        error_correction == "H" ? _qr_EC_H :
+        undef)
+    assert(ec_lvl >= _qr_EC_L && ec_lvl <= _qr_EC_H, "error_correction must be \"L\", \"M\", \"Q\" or \"H\"")
+    let(enc =
+        encoding == "Shift_JIS" ? _qr_ENC_SJIS :
+        encoding == "UTF-8" ? _qr_ENC_UTF8 :
+        undef)
+    assert(enc >= _qr_ENC_SJIS && enc <= _qr_ENC_UTF8, "encoding must be \"UTF-8\" or \"Shift_JIS\"")
+    _qr_version2size(_qr_get_version(len(_qr_str2bytes(message)), ec_lvl, enc));
+
+
 // Generates a 'connect to wifi' message which can be input into qr().
 // ssid: network name
 // psk: network password

@@ -28,23 +28,30 @@ include <qr.scad> // omit this if you pasted the library's source code at the en
 color("black") qr_custom("https://github.com/xypwn/scadqr") {
     // Module
     translate([0.5, 0.5])
-        scale([0.8, 0.8])
-        circle(d=1, $fn=16);
+        scale([0.9, 0.9])
+        offset(r = 0.3, $fn=16)
+            square(0.4, center=true);
     // Position pattern
     translate([3.5, 3.5]) union() {
         difference() {
-            circle(d=7, $fn=32);
-            circle(d=5.2, $fn=32);
+            offset(r = 0.75, $fn=32)
+                square(5.5, center=true);
+            offset(r = 0.75, $fn=32)
+                square(3.5, center=true);
         }
-        circle(d=3, $fn=24);
+        offset(r = 0.75, $fn=32)
+            square(1.4, center=true);
     }
     // Alignment pattern
     translate([2.5, 2.5]) union() {
         difference() {
-            circle(d=4.3, $fn=32);
-            circle(d=3, $fn=32);
+            offset(r = 0.6, $fn=32)
+                square(3.5, center=true);
+            offset(r = 0.5, $fn=32)
+                square(2, center=true);
         }
-        circle(d=1, $fn=16);
+        offset(r = 0.4, $fn=32)
+            square(0.2, center=true);
     }
 }
 ```

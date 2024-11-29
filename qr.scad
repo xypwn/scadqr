@@ -177,7 +177,7 @@ function qr_version(message, error_correction="M", encoding="UTF-8") =
 // hidden: whether network is hidden
 function qr_wifi(ssid, psk, auth="WPA", hidden=false) =
     (auth != "nopass" && auth != "WPA" && auth != "WEP") ? undef :
-    str("WIFI:T:", auth, ";S:", ssid, ";P:", psk, ";", hidden ? "H:true" : "", ";");
+    str("WIFI:T:", auth, ";S:", ssid, ";P:", auth != "nopass" ? psk : "", ";", hidden ? "H:true" : "", ";");
 
 // Generates a 'make a phone call' message which can be input into qr().
 function qr_phone_call(number) =

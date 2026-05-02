@@ -35,7 +35,7 @@
 // thickness: thickness, or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
-// convexity: preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?))
+// convexity: only affects preview; set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?)) [does nothing if thickness=0]
 module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef) 
     qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding, convexity=convexity) {
         _qr_default_module();
@@ -52,7 +52,7 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 // thickness: thickness, or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
-// convexity: preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?))
+// convexity: only affects preview; set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?)) [does nothing if thickness=0]
 module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef) {
     ec_lvl =
         error_correction == "L" ? _qr_EC_L :

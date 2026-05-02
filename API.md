@@ -3,7 +3,7 @@
 ---
 #### qr - Generates a QR code encoding plain text.
 ```scad
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef)
 ```
 ###### Parameters:
 |Name|Default|Description|
@@ -12,14 +12,15 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 |`error_correction`|`"M"`|options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)|
 |`width`|`100`||
 |`height`|`100`||
-|`thickness`|`1`|thickness or 0 for 2D|
+|`thickness`|`1`|thickness, or 0 for 2D|
 |`center`|`false`||
 |`mask_pattern`|`0`|range: 0-7|
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
+|`convexity`|`undef`|preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD\_User\_Manual/FAQ#Why\_are\_some\_parts\_(e.g.\_holes)\_of\_the\_model\_not\_rendered\_correctly?))|
 ---
 #### qr\_custom - Generates a QR code using custom elements.
 ```scad
-module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8")
+module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef)
 ```
 ###### Description:
 Child elements (2D, origin: [0,0], must extend into positive XY, 1 module = 1mm):
@@ -37,10 +38,11 @@ Child elements (2D, origin: [0,0], must extend into positive XY, 1 module = 1mm)
 |`error_correction`|`"M"`|options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)|
 |`width`|`100`||
 |`height`|`100`||
-|`thickness`|`1`|thickness or 0 for 2D|
+|`thickness`|`1`|thickness, or 0 for 2D|
 |`center`|`false`||
 |`mask_pattern`|`0`|range: 0-7|
 |`encoding`|`"UTF-8"`|options: "UTF-8" (Unicode) or "Shift\_JIS" (Shift Japanese International Standards)|
+|`convexity`|`undef`|preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD\_User\_Manual/FAQ#Why\_are\_some\_parts\_(e.g.\_holes)\_of\_the\_model\_not\_rendered\_correctly?))|
 ---
 ### Functions
 ---

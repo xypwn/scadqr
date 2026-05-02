@@ -9,11 +9,12 @@ include <data.scad>
 
 // Generates a QR code encoding plain text.
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
-// thickness: thickness or 0 for 2D
+// thickness: thickness, or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
-module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") 
-    qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding) {
+// convexity: preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?))
+module qr(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef) 
+    qr_custom(message, error_correction, width, height, thickness, center, mask_pattern, encoding, convexity=convexity) {
         default_module();
         default_position_pattern();
         default_alignment_pattern();
@@ -25,10 +26,11 @@ module qr(message, error_correction="M", width=100, height=100, thickness=1, cen
 // - `children(1)`: Position pattern
 // - `children(2)`: Alignment pattern
 // error_correction: options: "L" (~7%), "M" (~15%), "Q" (~25%) or "H" (~30%)
-// thickness: thickness or 0 for 2D
+// thickness: thickness, or 0 for 2D
 // mask_pattern: range: 0-7
 // encoding: options: "UTF-8" (Unicode) or "Shift_JIS" (Shift Japanese International Standards)
-module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8") {
+// convexity: preview only: set this when faces are drawn incorrectly (see [OpenSCAD FAQ](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/FAQ#Why_are_some_parts_(e.g._holes)_of_the_model_not_rendered_correctly?))
+module qr_custom(message, error_correction="M", width=100, height=100, thickness=1, center=false, mask_pattern=0, encoding="UTF-8", convexity=undef) {
     ec_lvl =
         error_correction == "L" ? EC_L :
         error_correction == "M" ? EC_M :
@@ -53,7 +55,7 @@ module qr_custom(message, error_correction="M", width=100, height=100, thickness
     positions = data_bit_positions(size);
 
     translate(center ? [-width/2, -height/2, 0] : [0,0,0])
-    extrude_or_2d(thickness)
+    extrude_or_2d(thickness, convexity)
     scale([width/size, height/size]) {
         // Position patterns
         for(i=[[0,6],[size-7,6],[0,size-1]])
@@ -277,11 +279,11 @@ module module_1(size, x, y) {
 }
 
 // Applies linear_extrude(thickness) only if thickness > 0
-module extrude_or_2d(thickness) {
-    if (thickness == 0) {
+module extrude_or_2d(thickness, convexity) {
+    if (thickness <= 0) {
         children(0);
     } else {
-        linear_extrude(thickness)
+        linear_extrude(thickness, convexity=convexity)
             children(0);
     }
 }
